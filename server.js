@@ -56,8 +56,12 @@ app.use(async (ctx, next)  => {
       });
     }
     if(ctx.url=='/calendar'){
-      let result = await readCalendar();
-      ctx.body = result;
+      if(ctx.request.header.host=='localhost:8082'){
+      	let result = await readCalendar();
+      	ctx.body = result;
+      }else {
+		      ctx.body = 'API only work with localhost'
+	     }
     }
   }
 });
