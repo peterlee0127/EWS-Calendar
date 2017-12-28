@@ -55,7 +55,7 @@ app.use(async (ctx, next)  => {
             ctx.body = json;
       });
     }
-    if(ctx.url=='/calender'){
+    if(ctx.url=='/calendar'){
       let result = await readCalendar();
       ctx.body = result;
     }
