@@ -46,8 +46,7 @@ function FetchCalendar(StartDate,EndDate,callback)  {
               'Start': item['Start'],
               'End': item['End'],
               'Importance': item['Importance'],
-              'Location': item['Location'],
-              'DisplayTo': item['DisplayTo']
+              'Location': item['Location']
             };
             array.push(obj);
         }
