@@ -40,29 +40,26 @@ async function readCalendar() {
           if(error){
             console.log(error);resolve(null);
           }else {
-            processCalendar(json,function(result){
-                resolve(result);
-            });
+            resolve(json);
           }
-        });
+      });
  })
 }
 
 
 app.use(async (ctx, next)  => {
-    if(ctx.url=='/auCal' && ctx.method=='GET'){
+  if(ctx.method=='GET'){
+    if(ctx.url=='/auCal'){
+      let result = await readCalendar();
+      processCalendar(result,function(json){
+            ctx.body = json;
+      });
+    }
+    if(ctx.url=='/calender'){
       let result = await readCalendar();
       ctx.body = result;
-      /*
-        readCalendar(function(json){
-            if(json!=null){
-                ctx.body = JSON.stringify(json);
-            }else {
-                ctx.body = 'auCal';
-            }
-        });
-        */
     }
+  }
 });
 
 app.listen(8082);
