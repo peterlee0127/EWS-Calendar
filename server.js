@@ -46,7 +46,6 @@ async function readCalendar() {
  })
 }
 
-
 app.use(async (ctx, next)  => {
   if(ctx.method=='GET'){
     if(ctx.url=='/auCal'){
@@ -55,15 +54,21 @@ app.use(async (ctx, next)  => {
             ctx.body = json;
       });
     }
-    if(ctx.url=='/calendar'){
-      if(ctx.request.header.host=='localhost:8082'){
-      	let result = await readCalendar();
-      	ctx.body = result;
-      }else {
-		      ctx.body = 'API only work with localhost'
-	     }
-    }
   }
 });
 
 app.listen(8082);
+
+const privateServer = new Koa();
+privateServer.use(async (ctx, next)  => {
+  if(ctx.url=='/calendar'){
+    if(ctx.request.header.host=='localhost:8083'){
+      let result = await readCalendar();
+      ctx.body = result;
+    }else {
+        ctx.body = 'API only work with localhost'
+     }
+  }
+});
+// Not explose with nginx.
+privateServer.listen(8083);
