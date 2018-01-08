@@ -12,6 +12,6 @@
     "koa": "^2.4.1",
     "node-ews": "^3.2.4",
     "crypto": "",
-    "request":"",
+    "request":""
   }
 }
