@@ -26,9 +26,7 @@ app.use(async (ctx, next)  => {
   if(ctx.method=='GET'){
     if(ctx.url=='/auCal'){
       let result = await readCalendar('./data/pub_calendar.json');
-      processCalendar(result,function(json){
-            ctx.body = json;
-      });
+      ctx.body = result;
     }
   }
 });
