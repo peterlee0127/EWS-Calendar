@@ -118,5 +118,10 @@ FetchCalendar(start.toISOString(),end.toISOString(),function(calendar){
       return;
   }
   processPublicCalendar(JSON.stringify(calendar));
-  fs.writeFileSync('./data/pri_calendar.json',JSON.stringify(calendar),'utf8');
+  
+  var jsonResult = {
+    'items':calendar,
+    'updateTime':new Date().toISOString()
+  };
+  fs.writeFileSync('./data/pri_calendar.json',JSON.stringify(jsonResult),'utf8');
 })
