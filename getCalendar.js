@@ -61,7 +61,7 @@ function FetchCalendar(StartDate,EndDate,callback)  {
 
 const now = new Date();
 const start = new Date(now.getFullYear(), now.getMonth(), 1 );
-const end = new Date(now.getFullYear(), now.getMonth()+3 , 1);
+const end = new Date(now.getFullYear(), now.getMonth()+12 , 1);
 console.log(start.toString()+"-->"+end.toString());
 
 function processPublicCalendar(json,callback) {
