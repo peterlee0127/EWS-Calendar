@@ -42,6 +42,7 @@ function FetchCalendar(StartDate,EndDate,callback)  {
         for(var i=0;i<calendar.length;i++){
             const item = calendar[i];
             const obj = {
+              'Id': item['ItemId']['attributes']['Id'],
               'Subject': item['Subject'],
               'Start': item['Start'],
               'End': item['End'],
