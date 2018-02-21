@@ -1,8 +1,9 @@
 var fs = require('fs');
 var readline = require('readline');
+const calendarId = require('./config.js').calendarId; 
 var google = require('googleapis');
 var googleAuth = require('google-auth-library');
-const calendarId = require('./config.js').config.calendarId; 
+
 
 const nowDate = new Date();
 const startDate = new Date(nowDate.getFullYear(), nowDate.getMonth(), 1 ); // current month 1th day.
@@ -187,7 +188,7 @@ function addEvents(auth) {
             'end': {
                 'dateTime': end,
             },
-            'description':'此事件同步於 '+updateTime
+            'description':'此事件同步於 '+new Date(updateTime).toString()
         };
        
         setTimeout(addEvent,500*i, auth, event);
