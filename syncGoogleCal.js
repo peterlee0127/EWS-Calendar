@@ -159,7 +159,7 @@ function readCalendarData(auth,callback) {
       if(error){
         console.log(error);
       }else {
-        var obj = JSON.parse(json).items;
+        var obj = JSON.parse(json);
         callback(obj);
     }// else
     }); // fs.readFile
@@ -167,8 +167,10 @@ function readCalendarData(auth,callback) {
 
 function addEvents(auth) {
     readCalendarData(auth,function(obj){
-         for(var i =0;i<obj.length;i++) {
-          var item = obj[i];
+         var items = obj.items;
+         var updateTime = obj.updateTime;
+         for(var i =0;i<items.length;i++) {
+          var item = items[i];
           var Subject = item.Subject;
           var Location = item.Location;
           var start = item.Start;
@@ -184,7 +186,8 @@ function addEvents(auth) {
             },
             'end': {
                 'dateTime': end,
-            }
+            },
+            'description':'此事件同步於 '+updateTime
         };
        
         setTimeout(addEvent,500*i, auth, event);
