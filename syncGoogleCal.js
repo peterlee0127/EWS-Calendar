@@ -189,7 +189,7 @@ function addEvents(auth) {
             'end': {
                 'dateTime': end,
             },
-            'description':body+'此事件同步於 '+new Date(updateTime).toString()
+            'description':body+'\n此事件同步於 '+new Date(updateTime).toString()
         };
 
         setTimeout(addEvent,500*i, auth, event);
