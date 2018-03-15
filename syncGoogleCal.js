@@ -112,7 +112,7 @@ function deleteEvents(auth) {
     auth: auth,
     calendarId: calendarId,
     timeMax: endDate.toISOString(),   // event start time
-    timeMin: startDate.toISOString(),   // event end time
+    timeMin: new Date(nowDate.getFullYear(), 1, 1 ).toISOString(),   // event end time
     maxResults: 2500,
     singleEvents: true,
     orderBy: 'startTime'
