@@ -12,7 +12,9 @@ function getCalendarItem(Id,callback)  {
     const ewsFunction = 'GetItem';
     const ewsArgs = {
       'ItemShape': {
-        'BaseShape': 'AllProperties'
+        'BaseShape': 'AllProperties',
+        // "IncludeMimeContent":"true",
+        "BodyType":'Text'
       },
       'ItemIds' : {
          'ItemId':{
@@ -26,18 +28,15 @@ function getCalendarItem(Id,callback)  {
     ews.run(ewsFunction, ewsArgs)
       .then(result => {
         const json = JSON.stringify(result);
-        var jsonObj = JSON.parse(json).ResponseMessages.GetItemResponseMessage.Items.CalendarItem;
-        console.dir(jsonObj.RequiredAttendees.Attendee,{depth:null});
-        console.dir(jsonObj.OptionalAttendees.Attendee,{depth:null});
-        callback();
+//        var jsonObj = JSON.parse(json).ResponseMessages.GetItemResponseMessage.Items.CalendarItem;
+  //      console.dir(jsonObj.RequiredAttendees.Attendee,{depth:null});
+    //    console.dir(jsonObj.OptionalAttendees.Attendee,{depth:null});
+        callback(json);
       })
       .catch(err => {
         console.log(err.stack);
         callback(null);
       });
 }
-const id = searchId;
 
-search(id,function(result) {
-  console.log(result);
-});
+exports.getCalendarItem = getCalendarItem;

@@ -1,5 +1,6 @@
 const EWS = require('node-ews');
 const config = require('./config.js').config;
+const getCalItem = require('./getCalendarItem.js');
 const ewsConfig = {
   username: config.useraccount,
   password: config.password,
@@ -7,6 +8,8 @@ const ewsConfig = {
 };
 const fs = require('fs');
 const ews = new EWS(ewsConfig);
+
+var resultCal = [];
 
 function FetchCalendar(StartDate,EndDate,callback)  {
     const ewsFunction = 'FindItem';
@@ -39,19 +42,14 @@ function FetchCalendar(StartDate,EndDate,callback)  {
         const jsonObj = JSON.parse(json);
         const calendar = jsonObj.ResponseMessages.FindItemResponseMessage.RootFolder.Items.CalendarItem;
         var array = [];
+
         for(var i=0;i<calendar.length;i++){
             const item = calendar[i];
-            const obj = {
-              'Id': item['ItemId']['attributes']['Id'],
-              'Subject': item['Subject'],
-              'Start': item['Start'],
-              'End': item['End'],
-              'Importance': item['Importance'],
-              'Location': item['Location']
-            };
-            array.push(obj);
+            let calItemID = item['ItemId']['attributes']['Id'];
+            array.push(calItemID);
         }
-        callback(array);
+        console.log(array.length);
+        loadCalendarDetail(array,callback);
 
       })
       .catch(err => {
@@ -61,9 +59,40 @@ function FetchCalendar(StartDate,EndDate,callback)  {
 }
 
 const now = new Date();
-const start = new Date(now.getFullYear(), now.getMonth(), 1 );
-const end = new Date(now.getFullYear(), now.getMonth()+12 , 1);
+const start = new Date(now.getFullYear(), now.getMonth(),  now.getDate()-2  );
+const end = new Date(now.getFullYear(), now.getMonth()+3 , 1);
 console.log(start.toString()+"-->"+end.toString());
+
+
+function loadCalendarDetail(calItemIDs,callback) {
+  if(calItemIDs.length<=0){
+    callback(resultCal);
+    return
+  }
+  var calItemID = calItemIDs[0];
+
+  getCalItem.getCalendarItem(calItemID,function(result) {
+    let resultJSON = JSON.parse(result);
+    let calendarItem = resultJSON.ResponseMessages.GetItemResponseMessage.Items.CalendarItem;
+    var body = '';
+    if((calendarItem.Body["$value"])!=null){
+      body = calendarItem.Body["$value"];
+    }
+    const obj = {
+      'Id': calendarItem['ItemId']['attributes']['Id'],
+      'Subject': calendarItem['Subject'],
+      'Start': calendarItem['Start'],
+      'End': calendarItem['End'],
+      'Importance': calendarItem['Importance'],
+      'Location': calendarItem['Location'],
+      'body':body
+    };
+    resultCal.push(obj);
+  });
+  calItemIDs.shift();
+  console.log("left"+calItemIDs.length);
+  setTimeout(loadCalendarDetail,500,calItemIDs,callback);
+}
 
 function processPublicCalendar(json,callback) {
   var array = [];
@@ -119,7 +148,7 @@ FetchCalendar(start.toISOString(),end.toISOString(),function(calendar){
       return;
   }
   processPublicCalendar(JSON.stringify(calendar));
-  
+
   var jsonResult = {
     'items':calendar,
     'updateTime':new Date().toISOString()

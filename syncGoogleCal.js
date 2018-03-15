@@ -1,6 +1,6 @@
 var fs = require('fs');
 var readline = require('readline');
-const calendarId = require('./config.js').calendarId; 
+const calendarId = require('./config.js').calendarId;
 var google = require('googleapis');
 var googleAuth = require('google-auth-library');
 
@@ -124,11 +124,11 @@ function deleteEvents(auth) {
     var events = response.items;
     eventCount = events.length;
     if (events.length == 0) {
-        
+
       console.log('No upcoming events found.');
         authorize(JSON.parse(client_secret), addEvents);
     } else {
-      console.log('Find '+events.length+" events"); 
+      console.log('Find '+events.length+" events");
       for (var i = 0; i < events.length; i++) {
         var event = events[i];
         setTimeout(deleteEvent,300*i, auth, event.id);
@@ -176,6 +176,7 @@ function addEvents(auth) {
           var Location = item.Location;
           var start = item.Start;
           var end = item.End;
+          var body = item.body;
          if(new Date(end).getTime()>endDate.getTime()){
             return;
          }
@@ -188,12 +189,12 @@ function addEvents(auth) {
             'end': {
                 'dateTime': end,
             },
-            'description':'此事件同步於 '+new Date(updateTime).toString()
+            'description':body+'此事件同步於 '+new Date(updateTime).toString()
         };
-       
+
         setTimeout(addEvent,500*i, auth, event);
-        } // for loop  
-        
+        } // for loop
+
     });
 }
 
@@ -207,10 +208,10 @@ function addEvent(auth, event, callback) {
     }, function(err, event) {
     if (err) {
         console.log('There was an error contacting the Calendar service: ' + err);
-        setTimeout(addEvent, 600, auth, event); 
+        setTimeout(addEvent, 600, auth, event);
         return;
     }
-        
+
         console.log('Event created: %s', event.htmlLink);
     });
 }
