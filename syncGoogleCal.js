@@ -131,13 +131,14 @@ function deleteEvents(auth) {
       console.log('Find '+events.length+" events");
       for (var i = 0; i < events.length; i++) {
         var event = events[i];
-        setTimeout(deleteEvent,500*i, auth, event.id);
+        var tryCount = 2;
+        setTimeout(deleteEvent,500*i, auth, event.id, tryCount);
       }
     }
   });
 }
 
-function deleteEvent(auth,eventID) {
+function deleteEvent(auth,eventID,tryCount) {
     var calendar = google.calendar('v3');
   calendar.events.delete({
     auth: auth,
@@ -145,7 +146,10 @@ function deleteEvent(auth,eventID) {
     eventId: eventID
   }, function(err, response) {
     if(err){console.log(err)
-        setTimeout(deleteEvent,700,auth,eventID);
+        if(tryCount>0){
+            tryCount--;
+            setTimeout(deleteEvent,700,auth,eventID,tryCount);
+        }
     }else {
         eventCount--;
     }
@@ -191,15 +195,15 @@ function addEvents(auth) {
             },
             'description':body+'\n此事件同步於 '+new Date(updateTime).toString()
         };
-
-        setTimeout(addEvent,700*i, auth, event);
+        var tryCount = 3;
+        setTimeout(addEvent,700*i, auth, event, tryCount);
         } // for loop
 
     });
 }
 
 
-function addEvent(auth, event, callback) {
+function addEvent(auth, event, tryCount) {
     var calendar = google.calendar('v3');
     calendar.events.insert({
         auth: auth,
@@ -207,11 +211,13 @@ function addEvent(auth, event, callback) {
         resource: event,
     }, function(err, event) {
     if (err) {
-        console.log('There was an error contacting the Calendar service: ' + err);
-        setTimeout(addEvent, 900, auth, event);
-        return;
-    }
-
-        console.log('Event created: %s', event.htmlLink);
+        if(tryCount>0) {
+            tryCount--;
+            console.log('There was an error contacting the Calendar service: ' + err);
+            setTimeout(addEvent, 900, auth, event, tryCount);
+            return;
+        }
+    }        
+    console.log('Event created: %s', event.htmlLink);
     });
 }
