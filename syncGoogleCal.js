@@ -7,7 +7,7 @@ var googleAuth = require('google-auth-library');
 
 const nowDate = new Date();
 const startDate = new Date(nowDate.getFullYear(), nowDate.getMonth(), 1 ); // current month 1th day.
-const endDate = new Date(nowDate.getFullYear(), nowDate.getMonth()+3, 1 ); // current month+2 1th day.
+const endDate = new Date(nowDate.getFullYear(), nowDate.getMonth()+6, 1 ); // current month+2 1th day.
 // If modifying these scopes, delete your previously saved credentials
 // at ~/.credentials/calendar-nodejs-quickstart.json
 var SCOPES = ['https://www.googleapis.com/auth/calendar'];
@@ -131,7 +131,7 @@ function deleteEvents(auth) {
       console.log('Find '+events.length+" events");
       for (var i = 0; i < events.length; i++) {
         var event = events[i];
-        setTimeout(deleteEvent,300*i, auth, event.id);
+        setTimeout(deleteEvent,500*i, auth, event.id);
       }
     }
   });
@@ -145,7 +145,7 @@ function deleteEvent(auth,eventID) {
     eventId: eventID
   }, function(err, response) {
     if(err){console.log(err)
-        setTimeout(deleteEvent,300,auth,eventID);
+        setTimeout(deleteEvent,700,auth,eventID);
     }else {
         eventCount--;
     }
@@ -192,7 +192,7 @@ function addEvents(auth) {
             'description':body+'\n此事件同步於 '+new Date(updateTime).toString()
         };
 
-        setTimeout(addEvent,500*i, auth, event);
+        setTimeout(addEvent,700*i, auth, event);
         } // for loop
 
     });
@@ -208,7 +208,7 @@ function addEvent(auth, event, callback) {
     }, function(err, event) {
     if (err) {
         console.log('There was an error contacting the Calendar service: ' + err);
-        setTimeout(addEvent, 600, auth, event);
+        setTimeout(addEvent, 900, auth, event);
         return;
     }
 
