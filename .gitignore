@@ -2,3 +2,4 @@ secret.key
 calendar.json
 client_secret.json
 data/*.json
+config.json

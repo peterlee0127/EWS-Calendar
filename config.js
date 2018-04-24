@@ -1,9 +1,19 @@
 const key = require('./key.js');
+const fs = require('fs');
 
-const config = {
-  useraccount:'',
-  password:'',
-  host: '',
-  targetCalendar: ''
+/*
+## config.json sample
+{
+  "useraccount": "",
+  "password": "",
+  "host": "",
+  "targetCalendar": "",
+  "calendarId": ""
 }
-exports.config = config;
+
+*/
+
+var config = JSON.parse(fs.readFileSync("./config.json","utf8"));
+config.password = key.decrypt(config.password);
+
+module.exports =  config;

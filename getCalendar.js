@@ -1,4 +1,4 @@
-const config = require('./config.js').config;
+const config = require('./config.js');
 const ewsCalendar = require('./EWS-Calendar.js');
 
 

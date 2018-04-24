@@ -1,4 +1,4 @@
-const config = require('./config.js').config;
+const config = require('./config.js');
 const EWS = require('node-ews');
 
 // exchange server connection info
