@@ -1,6 +1,8 @@
 const Koa = require('koa');
 const app = new Koa();
+const bodyParser = require('koa-bodyparser');
 const fs = require('fs');
+const booking = require('./booking.js');
 
 app.use(async (ctx, next) => {
   const start = Date.now();
@@ -8,7 +10,7 @@ app.use(async (ctx, next) => {
   const ms = Date.now() - start;
   console.log(`${ctx.method} ${ctx.url} - ${ms}`);
 });
-
+app.use(bodyParser());
 
 async function readCalendar(path) {
   return new Promise((resolve, reject) => {
@@ -22,10 +24,32 @@ async function readCalendar(path) {
  })
 }
 
+async function reserve(body) {
+  return new Promise((resolve, reject) => {
+    booking.getAuthToken(function(token){
+      let now = new Date();
+      let next = new Date(now.getFullYear(), now.getMonth(),  now.getDate()+20)
+      if(new Date(body.start).getTime()<=next.getTime()) {
+        booking.bookSchedule(body,token,function(response) {
+          resolve({"message":response})
+        });
+      }else {
+          resolve({"message":"還不能預約喔"})
+      }
+    });
+ })
+}
+
 app.use(async (ctx, next)  => {
   if(ctx.method=='GET'){
     if(ctx.url=='/auCal'){
       let result = await readCalendar('./data/pub_calendar.json');
+      ctx.body = result;
+    }
+  }
+  if(ctx.method=='POST'){
+    if(ctx.url=='/reserve'){
+      let result = await reserve(ctx.request.body);
       ctx.body = result;
     }
   }
