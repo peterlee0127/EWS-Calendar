@@ -118,7 +118,7 @@ function processPublicCalendar(json,callback) {
               const holi = holiday.date.split('/');
               const holidayDate = new Date(holi[1]+'/'+holi[2]+' '+holi[0]);
               if(new Date(dict.start).getDateStr()==holidayDate.getDateStr()){
-                bookingHourArray[j].holiday = true;
+                slotArray[j].holiday = true;
               }
             }
           }
@@ -151,15 +151,16 @@ function processPublicCalendar(json,callback) {
                 }//k
               }//j
             }// i
+
+            let jsonResult = {
+              'items':officeHourArray,
+              'booking': slotArray,
+              'updateTime':new Date().toISOString()
+            };
+            fs.writeFileSync('./data/pub_calendar.json',JSON.stringify(jsonResult),'utf8');
+
           });
 
-
-          let jsonResult = {
-            'items':officeHourArray,
-            'booking': slotArray,
-            'updateTime':new Date().toISOString()
-          };
-          fs.writeFileSync('./data/pub_calendar.json',JSON.stringify(jsonResult),'utf8');
 
         }// else
 
