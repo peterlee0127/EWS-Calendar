@@ -135,7 +135,7 @@ function processPublicCalendar(json,callback) {
                   slotArray[j].slots[k].available = false;
                   let next = new Date(now.getFullYear(), now.getMonth(),  now.getDate()+14)
                   // console.log(next.toString());
-                  if(new Date(item.Start).getTime()<=next.getTime()) {
+                  if(new Date(event.start).getTime()<=next.getTime()) {
                     setTimeout(bookSchedule,j*10+k*30,slotArray[j].slots[k],authToken);
                   }
                 }
