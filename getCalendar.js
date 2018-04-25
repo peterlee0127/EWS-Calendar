@@ -3,7 +3,7 @@ const ewsCalendar = require('./EWS-Calendar.js');
 const fs = require('fs');
 const Moment = require('moment');
 const MomentRange = require('moment-range');
-
+const request = require('request');
 const moment = MomentRange.extendMoment(Moment);
 
 const now = new Date();
@@ -41,7 +41,7 @@ function getTimeSlot(dict) {
         slot.push({
             "start": new Date(nstartT),
             "end": new Date(tend),
-            "avaiable": true
+            "available": true
         });
     }
   return slot;
@@ -67,7 +67,11 @@ function processPublicCalendar(json,callback) {
           officeHourArray.push(dict);
         }
         else if(item.Subject=='[au] 空總 Office Hour-booking'){
-          bookingHourArray.push(dict);
+          let next = new Date(now.getFullYear(), now.getMonth(),  now.getDate()+14)
+          // console.log(next.toString());
+          if(new Date(item.Start).getTime()<=next.getTime()) {
+            bookingHourArray.push(dict);
+          }
         }else {
             otherEvent.push(dict);
         } // else other event
@@ -115,13 +119,11 @@ function processPublicCalendar(json,callback) {
                 "slots": getTimeSlot(item)
               });
           }
-
-
+          getAuthToken(function(authToken){
           for(var i=0;i<otherEvent.length;i++){
             let event = otherEvent[i];
             let startT = new Date(event.start);
             let endT = new Date(event.end);
-            // console.log(event);
             for(var j=0;j<slotArray.length;j++) {
               let slots = slotArray[j].slots;
               for(var k=0;k<slots.length;k++) {
@@ -134,13 +136,14 @@ function processPublicCalendar(json,callback) {
 
                 if(range.overlaps(range1)){
                   // slotArray[j].slots[k].name = event.Subject;
-                  slotArray[j].slots[k].avaiable = false;
+                  slotArray[j].slots[k].available = false;
+                  setTimeout(bookSchedule,j*10+k*30,slotArray[j].slots[k],authToken);
                 }
               }
             }
           }
+          });
 
-          // console.dir(slotArray,{depth:null});
 
           let jsonResult = {
             'items':officeHourArray,
@@ -148,7 +151,68 @@ function processPublicCalendar(json,callback) {
             'updateTime':new Date().toISOString()
           };
           fs.writeFileSync('./data/pub_calendar.json',JSON.stringify(jsonResult),'utf8');
+
         }// else
 
     });
+}
+
+
+function getAuthToken(callback) {
+  let data = JSON.stringify({
+    "username": config.reserveAccount,
+    "password": config.reservePassword
+  });
+
+  let header = {
+    "content-type": "application/json",
+    "cache-control": "no-cache"
+  }
+  request.post({url:'https://booked.pdis.rocks/booked_tang/Web/Services/Authentication/Authenticate', form:data, headers: header}, function(err,httpResponse,body){
+      let token = JSON.parse(body).sessionToken;
+      // console.log(token);
+      callback(token);
+  });
+
+
+}
+function bookSchedule(dict,authToken) {
+
+      let data = JSON.stringify({
+        "startDateTime": new Date(dict.start).toISOString(),
+        "endDateTime": new Date(dict.end).toISOString(),
+        "description": "des",
+        "resourceId": "65",
+        "title": "另有公務行程",
+        "userId": "505",
+        "customAttributes": [
+          {
+            "attributeId": "3",
+            "attributeValue": "另有公務行程"
+          },
+          {
+            "attributeId": "4",
+            "attributeValue": "可聯繫的email"
+          },
+          {
+            "attributeId": "6",
+            "attributeValue": "單位名稱"
+          },
+          {
+            "attributeId": "5",
+            "attributeValue": "另有公務行程"
+          }
+        ]
+      });
+
+      let header = {
+        "x-booked-sessiontoken":authToken,
+        "x-booked-userid": "505",
+        "content-type": "application/json",
+        "cache-control": "no-cache"
+      }
+
+      request.post({url:'https://booked.pdis.rocks/booked_tang/Web/Services/Reservations/', form:data, headers: header}, function(err,httpResponse,body){
+          console.log(body);
+      });
 }
