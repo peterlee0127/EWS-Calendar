@@ -3,6 +3,8 @@ const app = new Koa();
 const bodyParser = require('koa-bodyparser');
 const fs = require('fs');
 const booking = require('./booking.js');
+const config = require('./config.js');
+const reserveDay = config.reserveDay;
 
 app.use(async (ctx, next) => {
   const start = Date.now();
@@ -28,7 +30,7 @@ async function reserve(body) {
   return new Promise((resolve, reject) => {
     booking.getAuthToken(function(token){
       let now = new Date();
-      let next = new Date(now.getFullYear(), now.getMonth(),  now.getDate()+20)
+      let next = new Date(now.getFullYear(), now.getMonth(),  now.getDate()+reserveDay)
       if(new Date(body.start).getTime()<=next.getTime()) {
         booking.bookSchedule(body,token,function(response) {
           resolve({"message":response})

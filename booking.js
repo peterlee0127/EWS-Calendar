@@ -1,5 +1,6 @@
 const request = require('request');
 const config = require('./config.js');
+const reserveDay = config.reserveDay;
 
 function getAuthToken(callback) {
   let data = JSON.stringify({
@@ -44,13 +45,13 @@ function bookSchedule(dict,authToken,callback) {
               }
             ]
           });
-      if(dict.name!=undefined) {
+      if(dict.username!=undefined) {
         data = JSON.stringify({
               "startDateTime": new Date(dict.start).toISOString(),
               "endDateTime": new Date(dict.end).toISOString(),
               "description": "des",
               "resourceId": "65",
-              "title": dict.name,
+              "title": "",
               "userId": "505",
               "customAttributes": [
                 {

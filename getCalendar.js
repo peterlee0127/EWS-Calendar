@@ -5,10 +5,10 @@ const fs = require('fs');
 const Moment = require('moment');
 const MomentRange = require('moment-range');
 const moment = MomentRange.extendMoment(Moment);
-
+const reserveDay = config.reserveDay;
 const now = new Date();
 const start = new Date(now.getFullYear(), now.getMonth(),  now.getDate()-2  );
-const end = new Date(now.getFullYear(), now.getMonth()+6 , 1);
+const end = new Date(now.getFullYear(), now.getMonth()+6 ,  1);
 console.log(start.toString()+"-->"+end.toString());
 
 
@@ -29,6 +29,12 @@ ewsCalendar.fetchCalendar(start.toISOString(),end.toISOString(),function(calenda
 function getTimeSlot(dict) {
     // if(dict.holiday) {return;}
     let startT = new Date(dict.start);
+    let available = false;
+    let next = new Date(now.getFullYear(), now.getMonth(),  now.getDate()+reserveDay)
+    if(new Date(startT).getTime()<=next.getTime()) {
+      // recent 14 day can reserve.
+      available = true;
+    }
     let endT = new Date(dict.end);
     let times = endT.getTime()/1000-startT.getTime()/1000;
     let numOfSlot = times/(30*60);
@@ -41,7 +47,7 @@ function getTimeSlot(dict) {
         slot.push({
             "start": new Date(nstartT),
             "end": new Date(tend),
-            "available": true
+            "available": available
         });
     }
   return slot;
@@ -63,10 +69,10 @@ function processPublicCalendar(json,callback) {
           end: item.End,
           holiday: false
         };
-        if(item.Subject=='[au] 空總 Office Hour'){
+        if(item.Subject == '[au] 空總 Office Hour'){
           officeHourArray.push(dict);
         }
-        else if(item.Subject=='[au] 空總 Office Hour-booking'){
+        else if(item.Subject == '[au] 空總 Office Hour-booking'){
             bookingHourArray.push(dict);
         }else {
             otherEvent.push(dict);
@@ -95,8 +101,20 @@ function processPublicCalendar(json,callback) {
 
 
 
-          for(var j=0;j<bookingHourArray.length;j++){
-            const dict = officeHourArray[j];
+          let slotArray = [];
+          for(var i=0;i<bookingHourArray.length;i++) {
+              let item = bookingHourArray[i];
+              console.log(item);
+              slotArray.push({
+                "name": item.Subject,
+                "slots": getTimeSlot(item)
+              });
+          }
+          console.dir(slotArray,{depth:null});
+
+          for(var j=0;j<slotArray.length;j++){
+            const dict = slotArray[j].slots[0];
+            // console.log(dict);
             for(var i=0;i<holidayArray.length;i++){
               const holiday = holidayArray[i];
               const holi = holiday.date.split('/');
@@ -107,14 +125,6 @@ function processPublicCalendar(json,callback) {
             }
           }
 
-          let slotArray = [];
-          for(var i=0;i<bookingHourArray.length;i++) {
-              let item = bookingHourArray[i];
-              slotArray.push({
-                "name": item.Subject,
-                "slots": getTimeSlot(item)
-              });
-          }
           booking.getAuthToken(function(authToken){
           for(var i=0;i<otherEvent.length;i++){
             let event = otherEvent[i];
@@ -130,22 +140,19 @@ function processPublicCalendar(json,callback) {
                 const range = moment.range(start, end);
                 const range1 = moment.range(startT, endT);
 
-                let next = new Date(now.getFullYear(), now.getMonth(),  now.getDate()+20)
-                if(new Date(event.start).getTime()<=next.getTime()) {
-                  // recent 14 day can reserve.
                   if(range.overlaps(range1)){
                     // slotArray[j].slots[k].name = event.Subject;
                     slotArray[j].slots[k].available = false;
-                    setTimeout(booking.bookSchedule,j*10+k*30,slotArray[j].slots[k],authToken,function(){});
+                    let next = new Date(now.getFullYear(), now.getMonth(),  now.getDate()+reserveDay)
+                    if(start.getTime()<=next.getTime()) {
+                      // recent 14 day can reserve.
+                      console.log("reserve:"+start.toString());
+                      setTimeout(booking.bookSchedule,j*10+k*30,slotArray[j].slots[k],authToken,function(){});
+                    }
                   }
-                }else {
-                  // future time no available.
-                  slotArray[j].slots[k].available = false;
-                }
-
-              }
-            }
-          }
+                }//k
+              }//j
+            }// i
           });
 
 
