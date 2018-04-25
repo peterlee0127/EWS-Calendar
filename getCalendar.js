@@ -67,11 +67,7 @@ function processPublicCalendar(json,callback) {
           officeHourArray.push(dict);
         }
         else if(item.Subject=='[au] 空總 Office Hour-booking'){
-          let next = new Date(now.getFullYear(), now.getMonth(),  now.getDate()+14)
-          // console.log(next.toString());
-          if(new Date(item.Start).getTime()<=next.getTime()) {
             bookingHourArray.push(dict);
-          }
         }else {
             otherEvent.push(dict);
         } // else other event
@@ -137,7 +133,11 @@ function processPublicCalendar(json,callback) {
                 if(range.overlaps(range1)){
                   // slotArray[j].slots[k].name = event.Subject;
                   slotArray[j].slots[k].available = false;
-                  setTimeout(bookSchedule,j*10+k*30,slotArray[j].slots[k],authToken);
+                  let next = new Date(now.getFullYear(), now.getMonth(),  now.getDate()+14)
+                  // console.log(next.toString());
+                  if(new Date(item.Start).getTime()<=next.getTime()) {
+                    setTimeout(bookSchedule,j*10+k*30,slotArray[j].slots[k],authToken);
+                  }
                 }
               }
             }
