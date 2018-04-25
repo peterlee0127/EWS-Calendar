@@ -104,17 +104,15 @@ function processPublicCalendar(json,callback) {
           let slotArray = [];
           for(var i=0;i<bookingHourArray.length;i++) {
               let item = bookingHourArray[i];
-              console.log(item);
               slotArray.push({
                 "name": item.Subject,
                 "slots": getTimeSlot(item)
               });
           }
-          console.dir(slotArray,{depth:null});
+          // console.dir(slotArray,{depth:null});
 
           for(var j=0;j<slotArray.length;j++){
             const dict = slotArray[j].slots[0];
-            // console.log(dict);
             for(var i=0;i<holidayArray.length;i++){
               const holiday = holidayArray[i];
               const holi = holiday.date.split('/');
