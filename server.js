@@ -29,17 +29,11 @@ async function readCalendar(path) {
 async function reserve(body) {
   return new Promise((resolve, reject) => {
     booking.getAuthToken(function(token){
-      let now = new Date();
-      let next = new Date(now.getFullYear(), now.getMonth(),  now.getDate()+reserveDay)
-      if(new Date(body.start).getTime()<=next.getTime()) {
         booking.bookSchedule(body,token,function(response) {
           resolve({"message":response})
         });
-      }else {
-          resolve({"message":"還不能預約喔"})
-      }
     });
- })
+ });
 }
 
 app.use(async (ctx, next)  => {
