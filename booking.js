@@ -18,6 +18,29 @@ function getAuthToken(callback) {
   });
 }
 
+function getReservations(callback) {
+  getAuthToken(token => {
+    let now = new Date();
+    let previousDay = new Date(now.getFullYear(), now.getMonth(),  now.getDate()-14 ).toISOString();
+    let endDay = new Date(now.getFullYear(), now.getMonth(),  now.getDate()+90 ).toISOString();
+
+    let GetReservationsURL = `https://booked.pdis.rocks/booked_tang/Web/Services/Reservations/?resourceId=65&startDateTime=${previousDay}&endDateTime=${endDay}`;
+    let header = {
+      "X-Booked-SessionToken":token,
+      "X-Booked-UserId": "505",
+      "content-type": "application/json",
+      "cache-control": "no-cache"
+    }
+
+
+    request.get({url:GetReservationsURL, headers: header}, function(err,httpResponse,body){
+        callback(body);
+    });
+  });
+}
+
+
+
 function bookSchedule(dict,authToken,callback) {
       var data = JSON.stringify({
             "startDateTime": new Date(dict.start).toISOString(),
@@ -88,5 +111,6 @@ function bookSchedule(dict,authToken,callback) {
       });
 }
 
+exports.getReservations = getReservations;
 exports.getAuthToken = getAuthToken;
 exports.bookSchedule = bookSchedule;

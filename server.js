@@ -36,10 +36,24 @@ async function reserve(body) {
  });
 }
 
+async function getReserve(body) {
+  return new Promise((resolve, reject) => {
+    booking.getReservations(function(body){
+        resolve(body)
+    });
+ });
+}
+
 app.use(async (ctx, next)  => {
   if(ctx.method=='GET'){
     if(ctx.url=='/auCal'){
       let result = await readCalendar('./data/pub_calendar.json');
+      ctx.body = result;
+    }
+  }
+  if(ctx.method=='GET'){
+    if(ctx.url=='/getReserve'){
+      let result = await getReserve(ctx.request.body);
       ctx.body = result;
     }
   }
