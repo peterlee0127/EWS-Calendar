@@ -74,7 +74,7 @@ function bookSchedule(dict,authToken,callback) {
               "endDateTime": new Date(dict.end).toISOString(),
               "description": "des",
               "resourceId": "65",
-              "title": dict.username,
+              "title": dict.name,
               "userId": "505",
               "customAttributes": [
                 {

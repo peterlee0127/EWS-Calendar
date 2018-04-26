@@ -8,7 +8,7 @@ const moment = MomentRange.extendMoment(Moment);
 const reserveDay = config.reserveDay;
 const now = new Date();
 const start = new Date(now.getFullYear(), now.getMonth(),  now.getDate()-2  );
-const end = new Date(now.getFullYear(), now.getMonth()+6 ,  1);
+const end = new Date(now.getFullYear(), now.getMonth() ,  now.getDate()+reserveDay);
 console.log(start.toString()+"-->"+end.toString());
 
 
@@ -53,6 +53,47 @@ function getTimeSlot(dict) {
   return slot;
 }
 
+function getWednesday() {
+  const startD = new Date(now.getFullYear(), now.getMonth(),  now.getDate()  );
+  const endD = new Date(now.getFullYear(), now.getMonth() ,  now.getDate()+reserveDay);
+
+  let start = moment(startD);
+  let end = moment(endD);
+
+  var arr = [];
+  let tmp = start.clone().day(3);
+  if( tmp.isAfter(start, 'd') ){
+    arr.push(
+      {
+        'exist': false,
+        'time':tmp.format('YYYY-MM-DD')
+      });
+  }
+  while( tmp.isBefore(end) ){
+    tmp.add(7, 'days');
+    arr.push(
+      {
+        'exist': false,
+        'time':tmp.format('YYYY-MM-DD')
+      });
+  }
+  return arr;
+}
+
+function filter(bookingHourArray) {
+  let wednesdays = getWednesday();
+  for(let i=0;i<wednesdays.length;i++){
+      for(let j=0;j<bookingHourArray.length;j++) {
+        console.log(bookingHourArray[j]);
+        if(new Date(bookingHourArray[j].start).getDateStr()==new Date(wednesdays[i].time).getDateStr())  {
+          wednesdays[i].exist = true;
+        }
+      }
+  }
+  for(let i=0;i<wednesdays.length;i++){
+    console.log(wednesdays[i]);
+  }
+}
 
 function processPublicCalendar(json,callback) {
   let officeHourArray = [];
@@ -141,7 +182,7 @@ function processPublicCalendar(json,callback) {
                   if(range.overlaps(range1)){
                     // slotArray[j].slots[k].name = event.Subject;
                     slotArray[j].slots[k].available = false;
-                    let next = new Date(now.getFullYear(), now.getMonth(),  now.getDate()+reserveDay)
+                    let next = new Date(now.getFullYear(), now.getMonth(),  now.getDate()+14)
                     if(start.getTime()<=next.getTime()) {
                       // recent 14 day can reserve.
                       console.log("reserve:"+start.toString());
@@ -151,6 +192,8 @@ function processPublicCalendar(json,callback) {
                 }//k
               }//j
             }// i
+
+            filter(slotArray);
 
             let jsonResult = {
               'items':officeHourArray,
