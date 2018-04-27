@@ -8,7 +8,7 @@ const moment = MomentRange.extendMoment(Moment);
 const reserveDay = config.reserveDay;
 const now = new Date();
 const start = new Date(now.getFullYear(), now.getMonth(),  now.getDate()-2  );
-const end = new Date(now.getFullYear(), now.getMonth() ,  now.getDate()+reserveDay);
+const end = new Date(now.getFullYear(), now.getMonth() ,  now.getDate()+reserveDay*2);
 console.log(start.toString()+"-->"+end.toString());
 
 
@@ -55,7 +55,7 @@ function getTimeSlot(dict) {
 
 function getWednesday() {
   const startD = new Date(now.getFullYear(), now.getMonth(),  now.getDate()  );
-  const endD = new Date(now.getFullYear(), now.getMonth() ,  now.getDate()+reserveDay);
+  const endD = new Date(now.getFullYear(), now.getMonth() ,  now.getDate()+14);
 
   let start = moment(startD);
   let end = moment(endD);
@@ -80,18 +80,28 @@ function getWednesday() {
   return arr;
 }
 
-function filter(bookingHourArray) {
+function filter(bookingHourArray,authToken) {
   let wednesdays = getWednesday();
   for(let i=0;i<wednesdays.length;i++){
       for(let j=0;j<bookingHourArray.length;j++) {
-        console.log(bookingHourArray[j]);
         if(new Date(bookingHourArray[j].start).getDateStr()==new Date(wednesdays[i].time).getDateStr())  {
           wednesdays[i].exist = true;
         }
       }
   }
   for(let i=0;i<wednesdays.length;i++){
-    console.log(wednesdays[i]);
+    if(wednesdays[i].exist==false){
+        let time = new Date(wednesdays[i].time);
+        let dict = {
+            start: time.setHours("14"),
+            end: time.setHours("17")
+        };
+        let slots = getTimeSlot(dict);
+        for(let k=0;k<slots.length;k++) {
+            let slot = slots[k];
+            setTimeout(booking.bookSchedule, k*30,slot,authToken,function(){});
+        }
+    }
   }
 }
 
@@ -165,6 +175,7 @@ function processPublicCalendar(json,callback) {
           }
 
           booking.getAuthToken(function(authToken){
+
           for(var i=0;i<otherEvent.length;i++){
             let event = otherEvent[i];
             let startT = new Date(event.start);
@@ -193,7 +204,7 @@ function processPublicCalendar(json,callback) {
               }//j
             }// i
 
-            filter(slotArray);
+            filter(slotArray,authToken);
 
             let jsonResult = {
               'items':officeHourArray,
