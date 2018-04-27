@@ -121,7 +121,7 @@ function loadCalendarItem(calItemIDs,callback) {
   });
   calItemIDs.shift();
   console.log("last item: "+calItemIDs.length+"/"+totoalCount);
-  setTimeout(loadCalendarItem,100,calItemIDs,callback);
+  setTimeout(loadCalendarItem,300,calItemIDs,callback);
 }
 
 Date.prototype.getDateStr = function() {
