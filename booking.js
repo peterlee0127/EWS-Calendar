@@ -34,7 +34,14 @@ function getReservations(callback) {
 
 
     request.get({url:GetReservationsURL, headers: header}, function(err,httpResponse,body){
-        callback(body);
+        //callback(body);
+        let res = JSON.parse(body);
+        for(let i=0;i<res.reservations.length;i++) {
+            delete res.reservations[i].firstName;
+            delete res.reservations[i].lastName;
+        }
+        callback(res);
+        
     });
   });
 }
