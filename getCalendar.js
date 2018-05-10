@@ -37,11 +37,11 @@ function getTimeSlot(dict) {
     }
     let endT = new Date(dict.end);
     let times = endT.getTime()/1000-startT.getTime()/1000;
-    let numOfSlot = times/(30*60);
+    let numOfSlot = times/(50*60);
     let slot = [];
     for(let j=0;j<numOfSlot;j++){
         let temp = new Date(startT);
-        let nstartT = temp.setMinutes(temp.getMinutes() + (30*j));
+        let nstartT = temp.setMinutes(temp.getMinutes() + (50*j));
         let stemp = new Date(nstartT);
         let tend = stemp.setMinutes(new Date(nstartT).getMinutes() + 30);
         slot.push({
@@ -49,7 +49,7 @@ function getTimeSlot(dict) {
             "end": new Date(tend),
             "available": available
         });
-    }
+  }
   return slot;
 }
 
