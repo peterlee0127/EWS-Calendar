@@ -132,7 +132,7 @@ function deleteEvents(auth) {
       for (var i = 0; i < events.length; i++) {
         var event = events[i];
         var tryCount = 2;
-        setTimeout(deleteEvent,500*i, auth, event.id, tryCount);
+        setTimeout(deleteEvent,1500*i, auth, event.id, tryCount);
       }
     }
   });
@@ -148,7 +148,7 @@ function deleteEvent(auth,eventID,tryCount) {
     if(err){console.log(err)
         if(tryCount>0){
             tryCount--;
-            setTimeout(deleteEvent,700,auth,eventID,tryCount);
+            setTimeout(deleteEvent,1500,auth,eventID,tryCount);
         }
     }else {
         eventCount--;
@@ -196,7 +196,7 @@ function addEvents(auth) {
             'description':body+'\n此事件同步於 '+new Date(updateTime).toString()
         };
         var tryCount = 3;
-        setTimeout(addEvent,700*i, auth, event, tryCount);
+        setTimeout(addEvent,1500*i, auth, event, tryCount);
         } // for loop
 
     });
@@ -214,7 +214,7 @@ function addEvent(auth, event, tryCount) {
         if(tryCount>0) {
             tryCount--;
             console.log('There was an error contacting the Calendar service: ' + err);
-            setTimeout(addEvent, 900, auth, event, tryCount);
+            setTimeout(addEvent, 1600, auth, event, tryCount);
             return;
         }
     }        
