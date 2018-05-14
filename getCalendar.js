@@ -55,7 +55,7 @@ function getTimeSlot(dict) {
 
 function getWednesday() {
   const startD = new Date(now.getFullYear(), now.getMonth(),  now.getDate()  );
-  const endD = new Date(now.getFullYear(), now.getMonth() ,  now.getDate()+14);
+  const endD = new Date(now.getFullYear(), now.getMonth() ,  now.getDate()+60);  // 2 month
 
   let start = moment(startD);
   let end = moment(endD);
@@ -193,9 +193,9 @@ function processPublicCalendar(json,callback) {
                   if(range.overlaps(range1)){
                     // slotArray[j].slots[k].name = event.Subject;
                     slotArray[j].slots[k].available = false;
-                    let next = new Date(now.getFullYear(), now.getMonth(),  now.getDate()+14)
+                    let next = new Date(now.getFullYear(), now.getMonth(),  now.getDate()+60)
                     if(start.getTime()<=next.getTime()) {
-                      // recent 14 day can reserve.
+                      // recent 60day/ 2 month will reserve.
                       console.log("reserve:"+start.toString());
                       setTimeout(booking.bookSchedule,j*10+k*30,slotArray[j].slots[k],authToken,function(){});
                     }
