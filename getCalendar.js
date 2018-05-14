@@ -84,11 +84,13 @@ function filter(bookingHourArray,authToken) {
   let wednesdays = getWednesday();
   for(let i=0;i<wednesdays.length;i++){
       for(let j=0;j<bookingHourArray.length;j++) {
-        if(new Date(bookingHourArray[j].start).getDateStr()==new Date(wednesdays[i].time).getDateStr())  {
+        let slot = bookingHourArray[j].slots[0].start;
+        if(new Date(slot).getDateStr()==new Date(wednesdays[i].time).getDateStr())  {
           wednesdays[i].exist = true;
         }
       }
   }
+
   for(let i=0;i<wednesdays.length;i++){
     if(wednesdays[i].exist==false){
         let time = new Date(wednesdays[i].time);
@@ -160,7 +162,6 @@ function processPublicCalendar(json,callback) {
                 "slots": getTimeSlot(item)
               });
           }
-          // console.dir(slotArray,{depth:null});
 
           for(var j=0;j<slotArray.length;j++){
             const dict = slotArray[j].slots[0];
@@ -203,6 +204,7 @@ function processPublicCalendar(json,callback) {
                 }//k
               }//j
             }// i
+
 
             filter(slotArray,authToken);
 
