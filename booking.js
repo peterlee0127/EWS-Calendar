@@ -123,7 +123,7 @@ function bookSchedule(dict,authToken,callback) {
 				type:'push_request',
 				uid:[	"U3ac082a96709434053e9c787199aabfd",
 					"Ufbcea5cc37693f864840c1d3fd90741f"],
-				text:dict.name+" 時間"+new Date(dict.start).toISOString()+" 預約者:"++dict.username+" email:"+dict.email+" 單位:"+dict.department
+				text:dict.name+" 時間"+new Date(dict.start).toString()+" 預約者:"+dict.username+" email:"+dict.email+" 單位:"+dict.department
 			}]
 		   };
 				
