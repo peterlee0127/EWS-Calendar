@@ -76,7 +76,8 @@ function bookSchedule(dict,authToken,callback) {
             ]
           });
       if(dict.username!=undefined) {
-        data = JSON.stringify({
+
+	data = JSON.stringify({
               "startDateTime": new Date(dict.start).toISOString(),
               "endDateTime": new Date(dict.end).toISOString(),
               "description": "des",
@@ -113,9 +114,32 @@ function bookSchedule(dict,authToken,callback) {
       }
 
       request.post({url:'https://booked.pdis.rocks/booked_tang/Web/Services/Reservations/', form:data, headers: header}, function(err,httpResponse,body){
+	let json = JSON.parse(body);
+	if(json.message=="The reservation was created"){
+	// build line push message;
+	let text = {	//stpeng,peter
+			events:[
+			{
+				type:'push_request',
+				uid:[	"U3ac082a96709434053e9c787199aabfd",
+					"Ufbcea5cc37693f864840c1d3fd90741f"],
+				text:dict.name+" 時間"+new Date(dict.start).toISOString()+" 預約者:"++dict.username+" email:"+dict.email+" 單位:"+dict.department
+			}]
+		   };
+				
+	const lineMessage = {
+		method:'POST',
+		url:'http://127.0.0.1:8081',
+		'body':JSON.stringify(text),
+		'headers': {"Content-Type":"application/json; charset=utf-8"}
+	}	        
+	request.post(lineMessage,function(error,response,body){
+		console.log("line push:"+body);
+	});
+	}
           console.log(body);
           callback(body);
-      });
+      	});
 }
 
 exports.getReservations = getReservations;
