@@ -117,7 +117,8 @@ function bookSchedule(dict,authToken,callback) {
 	let json = JSON.parse(body);
 	if(json.message=="The reservation was created"){
 	// build line push message;
-	let text = {	//stpeng,peter
+	if(!dict.name){return;}
+    let text = {	//stpeng,peter
 			events:[
 			{
 				type:'push_request',
