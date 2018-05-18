@@ -54,12 +54,12 @@ function bookSchedule(dict,authToken,callback) {
             "endDateTime": new Date(dict.end).toISOString(),
             "description": "des",
             "resourceId": "65",
-            "title": "另有公務行程",
+            "title": "已預約",
             "userId": "505",
             "customAttributes": [
               {
                 "attributeId": "3",
-                "attributeValue": "另有公務行程"
+                "attributeValue": "已預約"
               },
               {
                 "attributeId": "4",
@@ -71,7 +71,7 @@ function bookSchedule(dict,authToken,callback) {
               },
               {
                 "attributeId": "5",
-                "attributeValue": "另有公務行程"
+                "attributeValue": "已預約"
               }
             ]
           });
@@ -117,7 +117,8 @@ function bookSchedule(dict,authToken,callback) {
 	let json = JSON.parse(body);
 	if(json.message=="The reservation was created"){
 	// build line push message;
-	let text = {	//stpeng,peter
+	if(!dict.name){return;}
+    let text = {	//stpeng,peter
 			events:[
 			{
 				type:'push_request',
