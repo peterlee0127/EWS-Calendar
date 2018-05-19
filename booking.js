@@ -118,13 +118,13 @@ function bookSchedule(dict,authToken,callback) {
 	if(json.message=="The reservation was created"){
 	// build line push message;
 	if(!dict.name){return;}
-    let text = {	//stpeng,peter
+    let text = {	//stpeng,wendy, au team,peterlee, shunbo,
 			events:[
 			{
 				type:'push_request',
-				uid:[	"U3ac082a96709434053e9c787199aabfd","Udefc2dbb3579145fc5461f867f438cc3",
+				uid:[	"U3ac082a96709434053e9c787199aabfd","Udefc2dbb3579145fc5461f867f438cc3","C99d07e3e49ed69e4e83339edd2af9393",
 					"Ufbcea5cc37693f864840c1d3fd90741f","U80ad7ab061a659752e7b1450cdc8f614"],
-				text:dict.name+" 時間"+new Date(dict.start).toString()+" 預約者:"+dict.username+" email:"+dict.email+" 單位:"+dict.department
+				text:"社創中心週三下午拜會:"+dict.name+"\n時間:"+new Date(dict.start).toString()+"\n預約者:"+dict.username+"\nemail:"+dict.email+"\n單位:"+dict.department
 			}]
 		   };
 				
