@@ -119,9 +119,8 @@ function bookSchedule(dict,authToken,callback) {
 	// build line push message;
 	if(!dict.name){return;}
 	let description = "拜會說明";
-	if(!dict.description){
-	    description	= dict.description;
-	    description = description.slice(0,1000);
+	if(dict.description!=undefined){
+	    description = dict.description.slice(0,1800);
         }
     let text = {	//stpeng,wendy, au team,peterlee, shunbo,
 			events:[
