@@ -1,6 +1,9 @@
 const request = require('request');
 const config = require('./config.js');
 const reserveDay = config.reserveDay;
+const api_key = config.mailgunKey;
+const DOMAIN = config.mailgunDomain;
+const mailgun = require('mailgun-js')({apiKey: api_key, domain: DOMAIN});
 
 function getAuthToken(callback) {
   let data = JSON.stringify({
@@ -122,6 +125,8 @@ function bookSchedule(dict,authToken,callback) {
 	if(dict.description!=undefined){
 	    description = dict.description.slice(0,1800);
         }
+	let title = "社創中心週三下午拜會:"+dict.name+"\n時間:"+new Date(dict.start).toString();
+	let content = "社創中心週三下午拜會:"+dict.name+"\n時間:"+new Date(dict.start).toString()+"\n預約者:"+dict.username+"\nemail:"+dict.email+"\n單位:"+dict.department+"\n拜會內容:"+description;
     let text = {	//stpeng,wendy,peterlee, shunbo,
 			events:[
 			{
@@ -141,11 +146,32 @@ function bookSchedule(dict,authToken,callback) {
 	request.post(lineMessage,function(error,response,body){
 		console.log("line push:"+body);
 	});
+	
+	sendEmail(title,content);	
+
 	}
           console.log(body);
           callback(body);
       	});
 }
+
+function sendEmail(subject,text) {
+	let target = config.mailgunTarget;
+	for(var i=0;i<target.length;i++){
+	var data = {
+		from: 'PDIS <pdis@pdis.tw>',
+      		to: target[i],
+      		subject: subject,
+      		text: text
+	};
+
+	mailgun.messages().send(data, function (error, body) {
+   		console.log(body);
+	});
+ 	}//loop
+
+}
+
 
 exports.getReservations = getReservations;
 exports.getAuthToken = getAuthToken;
