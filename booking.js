@@ -44,7 +44,7 @@ function getReservations(callback) {
             delete res.reservations[i].lastName;
         }
         callback(res);
-        
+
     });
   });
 }
@@ -77,10 +77,10 @@ function bookSchedule(dict,authToken,callback) {
                 "attributeValue": "已預約"
               }
             ]
-          });
-      if(dict.username!=undefined) {
+      });
 
-	data = JSON.stringify({
+      if(dict.username!=undefined) {
+      	data = JSON.stringify({
               "startDateTime": new Date(dict.start).toISOString(),
               "endDateTime": new Date(dict.end).toISOString(),
               "description": "des",
@@ -116,43 +116,49 @@ function bookSchedule(dict,authToken,callback) {
         "cache-control": "no-cache"
       }
 
-      request.post({url:'https://booked.pdis.rocks/booked_tang/Web/Services/Reservations/', form:data, headers: header}, function(err,httpResponse,body){
-	let json = JSON.parse(body);
-	if(json.message=="The reservation was created"){
-	// build line push message;
-	if(!dict.name){return;}
-	let description = "拜會說明";
-	if(dict.description!=undefined){
-	    description = dict.description.slice(0,1800);
-        }
-	let title = "社創中心週三下午拜會:"+dict.name+"\n時間:"+new Date(dict.start).toString();
-	let content = "社創中心週三下午拜會:"+dict.name+"\n時間:"+new Date(dict.start).toString()+"\n預約者:"+dict.username+"\nemail:"+dict.email+"\n單位:"+dict.department+"\n拜會內容:"+description;
-    let text = {	//stpeng,wendy,peterlee, shunbo,
-			events:[
-			{
-				type:'push_request',
-				uid:[	"U3ac082a96709434053e9c787199aabfd","Udefc2dbb3579145fc5461f867f438cc3",
-					"Ufbcea5cc37693f864840c1d3fd90741f","U80ad7ab061a659752e7b1450cdc8f614"],
-				text:"社創中心週三下午拜會:"+dict.name+"\n時間:"+new Date(dict.start).toString()+"\n預約者:"+dict.username+"\nemail:"+dict.email+"\n單位:"+dict.department+"\n拜會內容:"+description
-			}]
-		   };
-				
-	const lineMessage = {
-		method:'POST',
-		url:'http://127.0.0.1:8081',
-		'body':JSON.stringify(text),
-		'headers': {"Content-Type":"application/json; charset=utf-8"}
-	}	        
-	request.post(lineMessage,function(error,response,body){
-		console.log("line push:"+body);
-	});
-	
-	sendEmail(title,content);	
+  request.post({url:'https://booked.pdis.rocks/booked_tang/Web/Services/Reservations/', form:data, headers: header}, function(err,httpResponse,body){
+    	let json = JSON.parse(body);
+    	if(json.message=="The reservation was created"){
+    	// build line push message;
+    	if(!dict.name){return;}
+    	let description = "拜會說明";
+    	if(dict.description!=undefined){
+    	    description = dict.description.slice(0,1800);
+      }
 
-	}
-          console.log(body);
-          callback(body);
-      	});
+      sendLinePush(dict);
+    	sendEmail(title,content);
+
+    	}
+      console.log(body);
+      callback(body);
+  });
+}
+
+function sendLinePush(dict) {
+
+  let title = "社創中心週三下午拜會:"+dict.name+"\n時間:"+new Date(dict.start).toString();
+  let content = "社創中心週三下午拜會:"+dict.name+"\n時間:"+new Date(dict.start).toString()+"\n預約者:"+dict.username+"\nemail:"+dict.email+"\n單位:"+dict.department+"\n拜會內容:"+description;
+    let text = {	//stpeng,wendy,peterlee, shunbo,
+      events:[
+      {
+        type:'push_request',
+        uid:[	"U3ac082a96709434053e9c787199aabfd","Udefc2dbb3579145fc5461f867f438cc3",
+          "Ufbcea5cc37693f864840c1d3fd90741f","U80ad7ab061a659752e7b1450cdc8f614"],
+        text:"社創中心週三下午拜會:"+dict.name+"\n時間:"+new Date(dict.start).toString()+"\n預約者:"+dict.username+"\nemail:"+dict.email+"\n單位:"+dict.department+"\n拜會內容:"+description
+      }]
+       };
+
+  const lineMessage = {
+    method:'POST',
+    url:'http://127.0.0.1:8081',
+    'body':JSON.stringify(text),
+    'headers': {"Content-Type":"application/json; charset=utf-8"}
+  }
+  request.post(lineMessage,function(error,response,body){
+    console.log("line push:"+body);
+  });
+
 }
 
 function sendEmail(subject,text) {
