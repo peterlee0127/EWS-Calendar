@@ -55,7 +55,7 @@ function getTimeSlot(dict) {
 
 function getWednesday() {
   const startD = new Date(now.getFullYear(), now.getMonth(),  now.getDate()  );
-  const endD = new Date(now.getFullYear(), now.getMonth() ,  now.getDate()+60);  // 2 month
+  const endD = new Date(now.getFullYear(), now.getMonth() ,  now.getDate()+90);  // 3 month
 
   let start = moment(startD);
   let end = moment(endD);
