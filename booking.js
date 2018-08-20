@@ -126,8 +126,11 @@ function bookSchedule(dict,authToken,callback) {
     	    description = dict.description.slice(0,1800);
       }
 
-      sendLinePush(dict);
-      sendEmail(dict.title,content);
+      let title = "社創中心週三下午拜會:"+dict.name+"\n時間:"+new Date(dict.start).toString();
+      let content = "社創中心週三下午拜會:"+dict.name+"\n時間:"+new Date(dict.start).toString()+"\n預約者:"+dict.username+"\nemail:"+dict.email+"\n單位:"+dict.department+"\n拜會內容:"+description;
+
+      sendLinePush(content);
+      sendEmail(title,content);
 
     	}
       console.log(body);
@@ -135,19 +138,17 @@ function bookSchedule(dict,authToken,callback) {
   });
 }
 
-function sendLinePush(dict) {
+function sendLinePush(content) {
 
-  let title = "社創中心週三下午拜會:"+dict.name+"\n時間:"+new Date(dict.start).toString();
-  let content = "社創中心週三下午拜會:"+dict.name+"\n時間:"+new Date(dict.start).toString()+"\n預約者:"+dict.username+"\nemail:"+dict.email+"\n單位:"+dict.department+"\n拜會內容:"+description;
     let text = {	//stpeng,wendy,peterlee, shunbo,
       events:[
       {
         type:'push_request',
         uid:[	"U3ac082a96709434053e9c787199aabfd","Udefc2dbb3579145fc5461f867f438cc3",
-          "Ufbcea5cc37693f864840c1d3fd90741f","U80ad7ab061a659752e7b1450cdc8f614"],
-        text:"社創中心週三下午拜會:"+dict.name+"\n時間:"+new Date(dict.start).toString()+"\n預約者:"+dict.username+"\nemail:"+dict.email+"\n單位:"+dict.department+"\n拜會內容:"+description
+              "Ufbcea5cc37693f864840c1d3fd90741f","U80ad7ab061a659752e7b1450cdc8f614"],
+        text:content
       }]
-       };
+    };
 
   const lineMessage = {
     method:'POST',
