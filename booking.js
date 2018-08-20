@@ -127,7 +127,7 @@ function bookSchedule(dict,authToken,callback) {
       }
 
       sendLinePush(dict);
-    	sendEmail(title,content);
+      sendEmail(dict.title,content);
 
     	}
       console.log(body);
