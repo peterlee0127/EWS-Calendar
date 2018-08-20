@@ -17,18 +17,20 @@ pm2 start --merge-logs --log-date-format="YYYY-MM-DD HH:mm Z" -n auCalServer ser
 ```
 {
     "useraccount": "LoginAccount",
-        "password": "encoded password",
-        "host": "https://doamin",
-        "targetCalendar": "target@example.com",
+    "password": "encoded password",
+    "host": "https://hostname",
+    "targetCalendar": "target@example.com",
 
-        "calendarId": "xxxxxx@group.calendar.google.com",
+    "calendarId": "xxxxxx@group.calendar.google.com",
 
-		 "mailgunKey":"key-xxxxxxx",
-		 "mailgunDomain":"domain",
-		 "mailgunTarget":["admin@example.com","test@example.com"],
+    "mailgunKey": "key-xxxxxxx",
+    "mailgunDomain": "domain",
+    "mailgunTarget": ["admin@example.com","test@example.com"],
+    "smsTarget": ["adminId","testId"],
 
-        "reserveAccount":"test",
-        "reservePassword":"test",
-        "reserveDay":90
+    "reserveAccount": "test",
+    "reservePassword": "test",
+    "reserveDay": 90,
+    "reserveUrl": "https://hostname/Web/Services/"
 }
 ```

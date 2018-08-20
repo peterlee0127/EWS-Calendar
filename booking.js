@@ -15,9 +15,9 @@ function getAuthToken(callback) {
     "content-type": "application/json",
     "cache-control": "no-cache"
   }
-  request.post({url:'https://booked.pdis.rocks/booked_tang/Web/Services/Authentication/Authenticate', form:data, headers: header}, function(err,httpResponse,body){
-      let token = JSON.parse(body).sessionToken;
-      callback(token);
+  request.post({url:config.reserveUrl+'Authentication/Authenticate', form:data, headers: header}, function(err,httpResponse,body){
+    let token = JSON.parse(body).sessionToken;
+    callback(token);
   });
 }
 
@@ -27,7 +27,7 @@ function getReservations(callback) {
     let previousDay = new Date(now.getFullYear(), now.getMonth(),  now.getDate()-14 ).toISOString();
     let endDay = new Date(now.getFullYear(), now.getMonth(),  now.getDate()+90 ).toISOString();
 
-    let GetReservationsURL = `https://booked.pdis.rocks/booked_tang/Web/Services/Reservations/?resourceId=65&startDateTime=${previousDay}&endDateTime=${endDay}`;
+    let GetReservationsURL = config.reserveUrl+`Reservations/?resourceId=65&startDateTime=${previousDay}&endDateTime=${endDay}`;
     let header = {
       "X-Booked-SessionToken":token,
       "X-Booked-UserId": "505",
@@ -40,8 +40,8 @@ function getReservations(callback) {
         //callback(body);
         let res = JSON.parse(body);
         for(let i=0;i<res.reservations.length;i++) {
-            delete res.reservations[i].firstName;
-            delete res.reservations[i].lastName;
+          delete res.reservations[i].firstName;
+          delete res.reservations[i].lastName;
         }
         callback(res);
 
@@ -52,7 +52,7 @@ function getReservations(callback) {
 
 
 function bookSchedule(dict,authToken,callback) {
-      var data = JSON.stringify({
+  var data = JSON.stringify({
             "startDateTime": new Date(dict.start).toISOString(),
             "endDateTime": new Date(dict.end).toISOString(),
             "description": "des",
@@ -77,105 +77,104 @@ function bookSchedule(dict,authToken,callback) {
                 "attributeValue": "已預約"
               }
             ]
-      });
+          });
 
-      if(dict.username!=undefined) {
-      	data = JSON.stringify({
-              "startDateTime": new Date(dict.start).toISOString(),
-              "endDateTime": new Date(dict.end).toISOString(),
-              "description": "des",
-              "resourceId": "65",
-              "title": dict.name,
-              "userId": "505",
-              "customAttributes": [
-                {
-                  "attributeId": "3",
-                  "attributeValue": dict.username
-                },
-                {
-                  "attributeId": "4",
-                  "attributeValue": dict.email
-                },
-                {
-                  "attributeId": "6",
-                  "attributeValue": dict.department
-                },
-                {
-                  "attributeId": "5",
-                  "attributeValue": dict.description
-                }
-              ]
-            });
-      }
+  if(dict.username!=undefined) {
+    data = JSON.stringify({
+          "startDateTime": new Date(dict.start).toISOString(),
+          "endDateTime": new Date(dict.end).toISOString(),
+          "description": "des",
+          "resourceId": "65",
+          "title": dict.name,
+          "userId": "505",
+          "customAttributes": [
+            {
+              "attributeId": "3",
+              "attributeValue": dict.username
+            },
+            {
+              "attributeId": "4",
+              "attributeValue": dict.email
+            },
+            {
+              "attributeId": "6",
+              "attributeValue": dict.department
+            },
+            {
+              "attributeId": "5",
+              "attributeValue": dict.description
+            }
+          ]
+        });
+  }
 
 
-      let header = {
-        "x-booked-sessiontoken":authToken,
-        "x-booked-userid": "505",
-        "content-type": "application/json",
-        "cache-control": "no-cache"
-      }
+  let header = {
+    "x-booked-sessiontoken":authToken,
+    "x-booked-userid": "505",
+    "content-type": "application/json",
+    "cache-control": "no-cache"
+  }
 
-  request.post({url:'https://booked.pdis.rocks/booked_tang/Web/Services/Reservations/', form:data, headers: header}, function(err,httpResponse,body){
-    	let json = JSON.parse(body);
-    	if(json.message=="The reservation was created"){
-    	// build line push message;
-    	if(!dict.name){return;}
-    	let description = "拜會說明";
-    	if(dict.description!=undefined){
-    	    description = dict.description.slice(0,1800);
-      }
+  request.post({url:config.reserveUrl+'Reservations/', form:data, headers: header}, function(err,httpResponse,body){
+    let json = JSON.parse(body);
+    if(json.message=="The reservation was created"){
+    // build sms push message;
+    if(!dict.name){return;}
+    let description = "拜會說明";
+    if(dict.description!=undefined){
+      description = dict.description.slice(0,1800);
+    }
 
-      let title = "社創中心週三下午拜會:"+dict.name+"\n時間:"+new Date(dict.start).toString();
-      let content = "社創中心週三下午拜會:"+dict.name+"\n時間:"+new Date(dict.start).toString()+"\n預約者:"+dict.username+"\nemail:"+dict.email+"\n單位:"+dict.department+"\n拜會內容:"+description;
+    let title = "社創中心週三下午拜會:"+dict.name+"\n時間:"+new Date(dict.start).toString();
+    let content = "社創中心週三下午拜會:"+dict.name+"\n時間:"+new Date(dict.start).toString()+"\n預約者:"+dict.username+"\nemail:"+dict.email+"\n單位:"+dict.department+"\n拜會內容:"+description;
 
-      sendLinePush(content);
-      sendEmail(title,content);
+    sendSmsPush(content);
+    sendEmail(title,content);
 
-    	}
-      console.log(body);
-      callback(body);
+    }
+    console.log(body);
+    callback(body);
   });
 }
 
-function sendLinePush(content) {
+function sendSmsPush(content) {
 
-    let text = {	//stpeng,wendy,peterlee, shunbo,
-      events:[
-      {
-        type:'push_request',
-        uid:[	"U3ac082a96709434053e9c787199aabfd","Udefc2dbb3579145fc5461f867f438cc3",
-              "Ufbcea5cc37693f864840c1d3fd90741f","U80ad7ab061a659752e7b1450cdc8f614"],
-        text:content
-      }]
-    };
+  let text = {
+    events:[
+    {
+      type:'push_request',
+      uid:config.smsTarget,
+      text:content
+    }]
+  };
 
-  const lineMessage = {
+  const smsMessage = {
     method:'POST',
     url:'http://127.0.0.1:8081',
     'body':JSON.stringify(text),
     'headers': {"Content-Type":"application/json; charset=utf-8"}
   }
-  request.post(lineMessage,function(error,response,body){
-    console.log("line push:"+body);
+  request.post(smsMessage,function(error,response,body){
+    console.log("sms push:"+body);
   });
 
 }
 
 function sendEmail(subject,text) {
-	let target = config.mailgunTarget;
-	for(var i=0;i<target.length;i++){
-	var data = {
-		from: 'PDIS <pdis@pdis.tw>',
-      		to: target[i],
-      		subject: subject,
-      		text: text
-	};
+  let target = config.mailgunTarget;
+  for(var i=0;i<target.length;i++){
+    var data = {
+      from: 'PDIS <pdis@pdis.tw>',
+      to: target[i],
+      subject: subject,
+      text: text
+    };
 
-	mailgun.messages().send(data, function (error, body) {
-   		console.log(body);
-	});
- 	}//loop
+    mailgun.messages().send(data, function (error, body) {
+      console.log(body);
+    });
+ }//loop
 
 }
 
