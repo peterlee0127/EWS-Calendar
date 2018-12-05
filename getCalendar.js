@@ -149,6 +149,10 @@ function processPublicCalendar(json,callback) {
         officeHourArray.push(dict);
       }
       else if (item.Subject == '[au] 空總 Office Hour-booking') {
+        //設定下午時段使用同樣區間 支援booking事件起訖縮小時自動預約
+        let time = new Date(item['Start']);
+        dict.start = time.setHours("14");
+        dict.end = time.setHours("17");
         bookingHourArray.push(dict);
       } else {
         otherEvent.push(dict);
