@@ -98,6 +98,10 @@ function bookSchedule(dict,authToken,callback) {
               "attributeValue": dict.email
             },
             {
+              "attributeId": "7",
+              "attributeValue": dict.mobile
+            },
+            {
               "attributeId": "6",
               "attributeValue": dict.department
             },
@@ -128,7 +132,7 @@ function bookSchedule(dict,authToken,callback) {
     }
 
     let title = "社創中心週三下午拜會:"+dict.name+"\n時間:"+new Date(dict.start).toString();
-    let content = "社創中心週三下午拜會:"+dict.name+"\n時間:"+new Date(dict.start).toString()+"\n預約者:"+dict.username+"\nemail:"+dict.email+"\n單位:"+dict.department+"\n拜會內容:"+description;
+    let content = "社創中心週三下午拜會:"+dict.name+"\n時間:"+new Date(dict.start).toString()+"\n預約者:"+dict.username+"\nemail:"+dict.email+"\n行動電話:"+dict.mobile+"\n單位:"+dict.department+"\n拜會內容:"+description;
 
     sendSmsPush(content);
     sendEmail(title,content);

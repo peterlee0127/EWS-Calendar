@@ -121,6 +121,7 @@ function filterWednesdayHoliday(holidayArray,authToken) {
           name: "國定假日",
           username: "已預約",
           email: "可聯繫的email",
+          mobile: "可聯繫的行動電話",
           department: "單位名稱",
           description: "已預約"
         };
