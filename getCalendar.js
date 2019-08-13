@@ -156,7 +156,7 @@ function processPublicCalendar(json,callback) {
         dict.start = time.setHours("14");
         dict.end = time.setHours("17");
         bookingHourArray.push(dict);
-      } else {
+      } else if (item.Subject.toUpperCase().indexOf("AU不出席") == -1) {
         otherEvent.push(dict);
       }  // else other event
     }  // day 3
