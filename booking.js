@@ -140,6 +140,7 @@ function bookSchedule(dict,authToken,callback) {
       receiver.push(dict.email);
     }
     sendEmail(title,content,receiver);
+    receiver.length = 0;
 
     }
     console.log(body);
