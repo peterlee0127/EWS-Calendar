@@ -113,6 +113,7 @@ function filterWednesdayHoliday(holidayArray,authToken) {
   for (let i = 0; i < wednesdays.length; i++) {
     for (let j = 0; j < holidayArray.length; j++) {
       let slotDate = moment(holidayArray[j].date, 'YYYY/M/D');
+      //勞動節要上工
       if (moment(slotDate).format('YYYY-MM-DD') == wednesdays[i].time && moment(slotDate).format('MM-DD') != "05-01") {
         let time = new Date(wednesdays[i].time);
         //搭配前臺能處理起訖跨多個時段時
@@ -153,7 +154,8 @@ function processPublicCalendar(json,callback) {
       }
       else if (item.Subject == '[au] 空總 Office Hour-booking') {
         //support shrink booking time slot
-      	let time = new Date(item['Start']);
+        //設定下午時段使用同樣區間 支援booking事件起訖縮小時自動預約
+        let time = new Date(item['Start']);
         dict.start = time.setHours("14");
         dict.end = time.setHours("17");
         bookingHourArray.push(dict);
