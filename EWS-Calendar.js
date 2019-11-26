@@ -1,10 +1,18 @@
 const config = require('./config.js');
 const EWS = require('node-ews');
+const NTLMAuth = require('httpntlm').ntlm;
+const passwordPlainText = config.password//'mypassword';
+
+// store the ntHashedPassword and lmHashedPassword to reuse later for reconnecting
+const ntHashedPassword = NTLMAuth.create_NT_hashed_password(passwordPlainText);
+const lmHashedPassword = NTLMAuth.create_LM_hashed_password(passwordPlainText);
 
 // exchange server connection info
 const ewsConfig = {
   username: config.useraccount,
-  password: config.password,
+  //password: config.password,
+  nt_password: ntHashedPassword,
+  lm_password: lmHashedPassword,
   host: config.host
 };
 const ews = new EWS(ewsConfig);
@@ -103,6 +111,7 @@ function loadCalendarItem(calItemIDs,callback) {
 
   getCalendarItem(calItemID,function(result) {
     let resultJSON = JSON.parse(result);
+    if(result==undefined){return;}
     let calendarItem = resultJSON.ResponseMessages.GetItemResponseMessage.Items.CalendarItem;
     var body = '';
     if((calendarItem.Body["$value"])!=null){

@@ -7,7 +7,7 @@ const MomentRange = require('moment-range');
 const moment = MomentRange.extendMoment(Moment);
 const reserveDay = config.reserveDay;
 const now = new Date();
-const start = new Date(now.getFullYear(), now.getMonth(), now.getDate()-2);
+const start = new Date(now.getFullYear(), now.getMonth(), now.getDate()-reserveDay/2);
 const end = new Date(now.getFullYear(), now.getMonth() , now.getDate()+reserveDay*2);
 console.log(start.toString()+"-->"+end.toString());
 
@@ -15,6 +15,8 @@ console.log(start.toString()+"-->"+end.toString());
 
 ewsCalendar.fetchCalendar(start.toISOString(),end.toISOString(),function(calendar) {
   if (!calendar) {
+    console.error("error");
+    console.error(calendar);
     return;
   }
   processPublicCalendar(JSON.stringify(calendar));
@@ -111,7 +113,7 @@ function filterWednesdayHoliday(holidayArray,authToken) {
   for (let i = 0; i < wednesdays.length; i++) {
     for (let j = 0; j < holidayArray.length; j++) {
       let slotDate = moment(holidayArray[j].date, 'YYYY/M/D');
-      if (moment(slotDate).format('YYYY-MM-DD') == wednesdays[i].time) {
+      if (moment(slotDate).format('YYYY-MM-DD') == wednesdays[i].time && moment(slotDate).format('MM-DD') != "05-01") {
         let time = new Date(wednesdays[i].time);
         //搭配前臺能處理起訖跨多個時段時
         let dict = {
@@ -120,6 +122,7 @@ function filterWednesdayHoliday(holidayArray,authToken) {
           name: "國定假日",
           username: "已預約",
           email: "可聯繫的email",
+          mobile: "可聯繫的行動電話",
           department: "單位名稱",
           description: "已預約"
         };
@@ -145,12 +148,16 @@ function processPublicCalendar(json,callback) {
         end: item.End,
         holiday: false
       };
-      if (item.Subject == '[au] 空總 Office Hour') {
+      if (item.Subject == 'Office Hour') {
         officeHourArray.push(dict);
       }
       else if (item.Subject == '[au] 空總 Office Hour-booking') {
+        //support shrink booking time slot
+      	let time = new Date(item['Start']);
+        dict.start = time.setHours("14");
+        dict.end = time.setHours("17");
         bookingHourArray.push(dict);
-      } else {
+      } else if (item.Subject.toUpperCase().indexOf("AU不出席") == -1) {
         otherEvent.push(dict);
       }  // else other event
     }  // day 3
@@ -159,6 +166,7 @@ function processPublicCalendar(json,callback) {
   fs.readFile('./data/holiday.json', "utf8", function(error,holidays) {
     if (error) {
       console.log(error);
+      console.log(holidays);
     } else {
       let holidayArray = JSON.parse(holidays);
       holidayArray = holidayArray.filter(item => item.date.split('/')[0] == now.getFullYear() && item.isHoliday == '是');
@@ -220,9 +228,9 @@ function processPublicCalendar(json,callback) {
               if (range.overlaps(range1)) {
                 // slotArray[j].slots[k].name = event.Subject;
                 slotArray[j].slots[k].available = false;
-                let next = new Date(now.getFullYear(), now.getMonth(), now.getDate()+60);
+                let next = new Date(now.getFullYear(), now.getMonth(), now.getDate()+90);
                 if (start.getTime()<=next.getTime()) {
-                  // recent 60day/ 2 month will reserve.
+                  // recent 90day/ 3 month will reserve.
                   console.log("reserve:"+start.toString());
                   setTimeout(booking.bookSchedule, j*10+k*30, slotArray[j].slots[k], authToken, function(){});
                 }

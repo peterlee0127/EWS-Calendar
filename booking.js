@@ -35,16 +35,18 @@ function getReservations(callback) {
       "cache-control": "no-cache"
     }
 
-
+console.log(GetReservationsURL);
     request.get({url:GetReservationsURL, headers: header}, function(err,httpResponse,body){
-        //callback(body);
+        try{
         let res = JSON.parse(body);
         for(let i=0;i<res.reservations.length;i++) {
           delete res.reservations[i].firstName;
           delete res.reservations[i].lastName;
         }
         callback(res);
-
+	} catch(e){
+	//	console.error(e);
+	}
     });
   });
 }
@@ -97,6 +99,10 @@ function bookSchedule(dict,authToken,callback) {
               "attributeValue": dict.email
             },
             {
+              "attributeId": "7",
+              "attributeValue": dict.mobile
+            },
+            {
               "attributeId": "6",
               "attributeValue": dict.department
             },
@@ -127,10 +133,15 @@ function bookSchedule(dict,authToken,callback) {
     }
 
     let title = "社創中心週三下午拜會:"+dict.name+"\n時間:"+new Date(dict.start).toString();
-    let content = "社創中心週三下午拜會:"+dict.name+"\n時間:"+new Date(dict.start).toString()+"\n預約者:"+dict.username+"\nemail:"+dict.email+"\n單位:"+dict.department+"\n拜會內容:"+description;
+    let content = "社創中心週三下午拜會:"+dict.name+"\n時間:"+new Date(dict.start).toString()+"\n預約者:"+dict.username+"\nemail:"+dict.email+"\n行動電話:"+dict.mobile+"\n單位:"+dict.department+"\n拜會內容:"+description;
 
     sendSmsPush(content);
-    sendEmail(title,content);
+    let receiver = config.mailgunTarget;
+    if (dict.email != undefined) {
+      receiver.push(dict.email);
+    }
+    sendEmail(title,content,receiver);
+    receiver.length = 0;
 
     }
     console.log(body);
@@ -161,8 +172,7 @@ function sendSmsPush(content) {
 
 }
 
-function sendEmail(subject,text) {
-  let target = config.mailgunTarget;
+function sendEmail(subject,text,target) {
   for(var i=0;i<target.length;i++){
     var data = {
       from: 'PDIS <pdis@pdis.tw>',
@@ -174,7 +184,7 @@ function sendEmail(subject,text) {
     mailgun.messages().send(data, function (error, body) {
       console.log(body);
     });
- }//loop
+  }//loop
 
 }
 

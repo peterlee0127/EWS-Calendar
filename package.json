@@ -12,6 +12,7 @@
     "crypto": "",
     "google-auth-library": "0.*",
     "googleapis": "^24.0.0",
+    "httpntlm": "^1.7.6",
     "koa": "^2.5.1",
     "koa-bodyparser": "^4.2.0",
     "mailgun-js": "^0.18.1",
