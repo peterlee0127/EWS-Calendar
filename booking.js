@@ -16,13 +16,20 @@ function getAuthToken(callback) {
     "cache-control": "no-cache"
   }
   request.post({url:config.reserveUrl+'Authentication/Authenticate', form:data, headers: header}, function(err,httpResponse,body){
-    let token = JSON.parse(body).sessionToken;
-    callback(token);
+    if(httpResponse.statusCode!=200){callback(null);return;}
+    try{
+        let token = JSON.parse(body).sessionToken;
+        callback(token);
+    }catch(e){
+        console.log(e);
+        callback(null);
+    }
   });
 }
 
 function getReservations(callback) {
   getAuthToken(token => {
+    if(!token){return;}
     let now = new Date();
     let previousDay = new Date(now.getFullYear(), now.getMonth(),  now.getDate()-14 ).toISOString();
     let endDay = new Date(now.getFullYear(), now.getMonth(),  now.getDate()+90 ).toISOString();
@@ -35,7 +42,7 @@ function getReservations(callback) {
       "cache-control": "no-cache"
     }
 
-console.log(GetReservationsURL);
+    console.log(GetReservationsURL);
     request.get({url:GetReservationsURL, headers: header}, function(err,httpResponse,body){
         try{
         	let res = JSON.parse(body);
