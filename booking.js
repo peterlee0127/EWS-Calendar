@@ -130,6 +130,7 @@ function bookSchedule(dict,authToken,callback) {
   }
 
   request.post({url:config.reserveUrl+'Reservations/', form:data, headers: header}, function(err,httpResponse,body){
+    if(httpResponse.statusCode!=200){callback(null);return;}
     let json = JSON.parse(body);
     if(json.message=="The reservation was created"){
     // build sms push message;
