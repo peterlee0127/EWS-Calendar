@@ -29,10 +29,11 @@ function getAuthToken(callback) {
 
 function getReservations(callback) {
   getAuthToken(token => {
-    if(!token){return;}
+    if(!token){console.log('token not exist');return;}
     let now = new Date();
     let previousDay = new Date(now.getFullYear(), now.getMonth(),  now.getDate()-14 ).toISOString();
-    let endDay = new Date(now.getFullYear(), now.getMonth(),  now.getDate()+90 ).toISOString();
+    let endDay = new Date(now.getFullYear(), now.getMonth(),  now.getDate()+92 ).toISOString();
+    // prevent timezone problem.
 
     let GetReservationsURL = config.reserveUrl+`Reservations/?resourceId=65&startDateTime=${previousDay}&endDateTime=${endDay}`;
     let header = {
@@ -44,16 +45,16 @@ function getReservations(callback) {
 
     console.log(GetReservationsURL);
     request.get({url:GetReservationsURL, headers: header}, function(err,httpResponse,body){
-        try{
-        	let res = JSON.parse(body);
-        	for(let i=0;i<res.reservations.length;i++) {
-          		delete res.reservations[i].firstName;
-          		delete res.reservations[i].lastName;
-        	}
-        	callback(res);
-	} catch(e){
-		console.error(e);
-	}
+    try{
+      let res = JSON.parse(body);
+      for(let i=0;i<res.reservations.length;i++) {
+          delete res.reservations[i].firstName;
+          delete res.reservations[i].lastName;
+      }
+      callback(res);
+	  } catch(e){
+		  console.log(e+" "+body);
+	  }
     });
   });
 }
@@ -131,29 +132,33 @@ function bookSchedule(dict,authToken,callback) {
 
   request.post({url:config.reserveUrl+'Reservations/', form:data, headers: header}, function(err,httpResponse,body){
     if(httpResponse.statusCode!=200){callback(null);return;}
-    let json = JSON.parse(body);
-    if(json.message=="The reservation was created"){
-    // build sms push message;
-    if(!dict.name){return;}
-    let description = "拜會說明";
-    if(dict.description!=undefined){
-      description = dict.description.slice(0,1800);
-    }
+    try{
+      let json = JSON.parse(body);
+      if(json.message=="The reservation was created"){
+      // build sms push message;
+      if(!dict.name){return;}
+      let description = "拜會說明";
+      if(dict.description!=undefined){
+        description = dict.description.slice(0,1800);
+      }
 
-    let title = "社創中心週三下午拜會:"+dict.name+"\n時間:"+new Date(dict.start).toString();
-    let content = "社創中心週三下午拜會:"+dict.name+"\n時間:"+new Date(dict.start).toString()+"\n預約者:"+dict.username+"\nemail:"+dict.email+"\n行動電話:"+dict.mobile+"\n單位:"+dict.department+"\n拜會內容:"+description;
+      let title = "社創中心週三下午拜會:"+dict.name+"\n時間:"+new Date(dict.start).toString();
+      let content = "社創中心週三下午拜會:"+dict.name+"\n時間:"+new Date(dict.start).toString()+"\n預約者:"+dict.username+"\nemail:"+dict.email+"\n行動電話:"+dict.mobile+"\n單位:"+dict.department+"\n拜會內容:"+description;
 
-    sendSmsPush(content);
-    let receiver = config.mailgunTarget;
-    if (dict.email != undefined) {
-      receiver.push(dict.email);
-    }
-    sendEmail(title,content,receiver);
-    receiver.length = 0;
+      sendSmsPush(content);
+      let receiver = config.mailgunTarget;
+      if (dict.email != undefined) {
+        receiver.push(dict.email);
+      }
+      sendEmail(title,content,receiver);
+      receiver.length = 0;
 
+      }
+      console.log(body);
+      callback(body);
+    }catch(e) {
+      callback(null);
     }
-    console.log(body);
-    callback(body);
   });
 }
 

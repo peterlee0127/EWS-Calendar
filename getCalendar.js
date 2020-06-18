@@ -19,6 +19,10 @@ ewsCalendar.fetchCalendar(start.toISOString(),end.toISOString(),function(calenda
     console.error(calendar);
     return;
   }
+  if(JSON.stringify(calendar).length<10) {
+    console.error('calendar length is not correct');
+    return;
+  }
   processPublicCalendar(JSON.stringify(calendar));
 
   var jsonResult = {
@@ -209,7 +213,6 @@ function processPublicCalendar(json,callback) {
       }
 
       booking.getAuthToken(function(authToken) {
-
         //國定假日可能有行程 放在其他行程前 可預約時段前
         filterWednesdayHoliday(holidayArray,authToken);
 
