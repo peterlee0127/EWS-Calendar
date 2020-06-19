@@ -32,7 +32,7 @@ let reservationResult = {};
 function getReservations(callback) {
   let nowTS = new Date().getTime()/1000;
   let reservationTS = new Date(reservationResult.updateDate).getTime()/1000;
-  if(reservationResult!=undefined && reservationTS+10>=nowTS)  {
+  if(reservationResult!=undefined && reservationTS+5>=nowTS)  {
     callback(reservationResult);
     console.log("use reservation cache");
     return;
