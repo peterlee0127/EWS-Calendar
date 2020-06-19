@@ -27,9 +27,21 @@ function getAuthToken(callback) {
   });
 }
 
+
+let reservationResult = {};
 function getReservations(callback) {
+  let nowTS = new Date().getTime()/1000;
+  let reservationTS = new Date(reservationResult.updateDate).getTime()/1000;
+  if(reservationResult!=undefined && reservationTS+10>=nowTS)  {
+    callback(reservationResult);
+    console.log("use reservation cache");
+    return;
+  }else {
+    console.log("will update reservation cache");
+  }
   getAuthToken(token => {
     if(!token){console.log('token not exist');return;}
+
     let now = new Date();
     let previousDay = new Date(now.getFullYear(), now.getMonth(),  now.getDate()-14 ).toISOString();
     let endDay = new Date(now.getFullYear(), now.getMonth(),  now.getDate()+92 ).toISOString();
@@ -51,6 +63,9 @@ function getReservations(callback) {
           delete res.reservations[i].firstName;
           delete res.reservations[i].lastName;
       }
+      reservationResult = res;
+      reservationResult.updateDate = new Date().toISOString();
+      console.log("update reservation cache");
       callback(res);
 	  } catch(e){
 		  console.log(e+" "+body);
