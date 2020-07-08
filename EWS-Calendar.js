@@ -118,7 +118,7 @@ function loadCalendarItem(calItemIDs,callback) {
     if(attendees && attendees.Attendee) {
         attendees = attendees.Attendee;
         if(attendees.length>0){
-          attendees = attendees.map(_=> "Name: " + _.Mailbox.Name + "\tEmail:"+ _.Mailbox.EmailAddress );
+          attendees = attendees.map(_=> "Name: " + _.Mailbox.Name + "\tEmail: "+ _.Mailbox.EmailAddress );
           attendeeInfo = attendees;
         }else {
             let mailBox = attendees.Mailbox;
