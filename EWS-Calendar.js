@@ -129,7 +129,6 @@ function loadCalendarItem(calItemIDs,callback) {
     if((calendarItem.Body["$value"])!=null){
       body = attendeeInfo + "\n\n" + calendarItem.Body["$value"];
     }
-    console.log(body);
     const obj = {
       'Id': calendarItem['ItemId']['attributes']['Id'],
       'Subject': calendarItem['Subject'],
