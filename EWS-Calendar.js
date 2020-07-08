@@ -108,15 +108,28 @@ function loadCalendarItem(calItemIDs,callback) {
     return
   }
   var calItemID = calItemIDs[0];
-
+  let attendeeInfo = "";
   getCalendarItem(calItemID,function(result) {
     let resultJSON = JSON.parse(result);
     if(result==undefined){return;}
     let calendarItem = resultJSON.ResponseMessages.GetItemResponseMessage.Items.CalendarItem;
+    let requiredAttendees = calendarItem.RequiredAttendees;
+    let attendees = requiredAttendees;
+    if(attendees && attendees.Attendee) {
+        attendees = attendees.Attendee;
+        if(attendees.length>0){
+          attendees = attendees.map(_=> "Name: " + _.Mailbox.Name + "\tEmail:"+ _.Mailbox.EmailAddress );
+          attendeeInfo = attendees;
+        }else {
+            let mailBox = attendees.Mailbox;
+            attendeeInfo = "Name: " + mailBox.Name + "\tEmail:"+ mailBox.EmailAddress;
+        }
+    }
     var body = '';
     if((calendarItem.Body["$value"])!=null){
-      body = calendarItem.Body["$value"];
+      body = attendeeInfo + "\n\n" + calendarItem.Body["$value"];
     }
+    console.log(body);
     const obj = {
       'Id': calendarItem['ItemId']['attributes']['Id'],
       'Subject': calendarItem['Subject'],
