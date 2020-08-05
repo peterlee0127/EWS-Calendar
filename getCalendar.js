@@ -7,30 +7,40 @@ const MomentRange = require('moment-range');
 const moment = MomentRange.extendMoment(Moment);
 const reserveDay = config.reserveDay;
 const now = new Date();
-const start = new Date(now.getFullYear(), now.getMonth(), now.getDate()-reserveDay/2);
+const start = new Date(now.getFullYear(), now.getMonth(), now.getDate()-2);
 const end = new Date(now.getFullYear(), now.getMonth() , now.getDate()+reserveDay*2);
 console.log(start.toString()+"-->"+end.toString());
 
 
+function loadCalendar() {
+  ewsCalendar.fetchCalendar(start.toISOString(),end.toISOString(),function(calendar) {
+    if (!calendar) {
+      console.error("error");
+      console.error(calendar);
+      return;
+    }
+    if(JSON.stringify(calendar).length<10) {
+      console.error('calendar length is not correct');
+      return;
+    }
+    processPublicCalendar(JSON.stringify(calendar));
 
-ewsCalendar.fetchCalendar(start.toISOString(),end.toISOString(),function(calendar) {
-  if (!calendar) {
-    console.error("error");
-    console.error(calendar);
-    return;
-  }
-  if(JSON.stringify(calendar).length<10) {
-    console.error('calendar length is not correct');
-    return;
-  }
-  processPublicCalendar(JSON.stringify(calendar));
+    var jsonResult = {
+      'items': calendar,
+      'updateTime': new Date().toISOString()
+    };
+    fs.writeFileSync('./data/pri_calendar.json',JSON.stringify(jsonResult),'utf8');
+  });
+}
+loadCalendar();
 
-  var jsonResult = {
-    'items': calendar,
-    'updateTime': new Date().toISOString()
-  };
-  fs.writeFileSync('./data/pri_calendar.json',JSON.stringify(jsonResult),'utf8');
-});
+function test(){
+  let calendar = fs.readFileSync('./data/pri_calendar.json','utf8');
+  calendar = JSON.parse(calendar).items;
+  processPublicCalendar(JSON.stringify(calendar)); 
+
+}
+// test();
 
 function getTimeSlot(dict) {
   // if(dict.holiday) {return;}
@@ -70,6 +80,8 @@ function getWednesday() {
   let tmp = start.clone().day(3);
   if (tmp.isAfter(start, 'd')) {
     arr.push({
+      'morningExist': false,
+      'afternoonExist': false,
       'exist': false,
       'time': tmp.format('YYYY-MM-DD')
     });
@@ -77,6 +89,8 @@ function getWednesday() {
   while (tmp.isBefore(end)) {
     tmp.add(7, 'days');
     arr.push({
+      'morningExist': false,
+      'afternoonExist': false,
       'exist': false,
       'time': tmp.format('YYYY-MM-DD')
     });
@@ -90,25 +104,48 @@ function filterWednesdayNotBooking(bookingHourArray,authToken) {
     for (let j=0;j<bookingHourArray.length;j++) {
       let slot = bookingHourArray[j].slots[0].start;
       if (new Date(slot).getDateStr()==new Date(wednesdays[i].time).getDateStr()) {
-        wednesdays[i].exist = true;
+        if(bookingHourArray[j].morning) {
+          wednesdays[i].morningExist = true;
+        }else {
+          wednesdays[i].afternoonExist = true;
+        }
+      }
+    }
+  }
+  // console.dir(wednesdays,{depth:null});
+
+  for (let i=0;i<wednesdays.length;i++) {
+    if (wednesdays[i].afternoonExist==false) {
+        let time = new Date(wednesdays[i].time);
+        let dict = {
+          start: time.setHours("13"),
+          end: time.setHours("17")
+        };
+    
+        let slots = getTimeSlot(dict);
+        for (let k=0;k<slots.length;k++) {
+          let slot = slots[k];
+          setTimeout(booking.bookSchedule, k*30, slot, authToken, function(){});
       }
     }
   }
 
   for (let i=0;i<wednesdays.length;i++) {
-    if (wednesdays[i].exist==false) {
-      let time = new Date(wednesdays[i].time);
-      let dict = {
-        start: time.setHours("14"),
-        end: time.setHours("17")
-      };
-      let slots = getTimeSlot(dict);
-      for (let k=0;k<slots.length;k++) {
-        let slot = slots[k];
-        setTimeout(booking.bookSchedule, k*30, slot, authToken, function(){});
-      }
+    if (wednesdays[i].morningExist==false) {
+        let time = new Date(wednesdays[i].time);
+        let dict = {
+          start: time.setHours("10"),
+          end: time.setHours("12")
+        };
+        let slots = getTimeSlot(dict);
+        for (let k=0;k<slots.length;k++) {
+          let slot = slots[k];
+          setTimeout(booking.bookSchedule, k*30, slot, authToken, function(){});
+        }
     }
   }
+
+ 
 }
 
 function filterWednesdayHoliday(holidayArray,authToken) {
@@ -122,7 +159,7 @@ function filterWednesdayHoliday(holidayArray,authToken) {
         let time = new Date(wednesdays[i].time);
         //搭配前臺能處理起訖跨多個時段時
         let dict = {
-          start: time.setHours("14"),
+          start: time.setHours("10"),
           end: time.setHours("17"),
           name: "國定假日",
           username: "已預約",
@@ -153,15 +190,25 @@ function processPublicCalendar(json,callback) {
         end: item.End,
         holiday: false
       };
-      if (item.Subject == 'Office Hour') {
-        officeHourArray.push(dict);
+      // console.log(item['Start']+" "+item.Subject);
+
+      if (item.Subject == '[au] 空總 Office Hour-booking-上午') {
+        // officeHourArray.push(dict);
+        let time = new Date(item['Start']);
+        dict.start = time.setHours("10");
+        dict.end = time.setHours("12");
+        dict.morning = true;
+        dict.afternoon = false;
+        bookingHourArray.push(dict);
       }
       else if (item.Subject == '[au] 空總 Office Hour-booking') {
         //support shrink booking time slot
         //設定下午時段使用同樣區間 支援booking事件起訖縮小時自動預約
         let time = new Date(item['Start']);
-        dict.start = time.setHours("14");
+        dict.start = time.setHours("13");
         dict.end = time.setHours("17");
+        dict.morning = false;
+        dict.afternoon = true;
         bookingHourArray.push(dict);
       } else if (item.Subject.toUpperCase().indexOf("AU不出席") == -1) {
         otherEvent.push(dict);
@@ -190,12 +237,13 @@ function processPublicCalendar(json,callback) {
       }
 
 
-
       let slotArray = [];
       for (var i=0;i<bookingHourArray.length;i++) {
         let item = bookingHourArray[i];
         slotArray.push({
           "name": item.Subject,
+          "morning": item.morning,
+          "afternoon": item.afternoon,
           "slots": getTimeSlot(item)
         });
       }

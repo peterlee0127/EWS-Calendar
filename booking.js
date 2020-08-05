@@ -16,7 +16,8 @@ function getAuthToken(callback) {
     "cache-control": "no-cache"
   }
   request.post({url:config.reserveUrl+'Authentication/Authenticate', form:data, headers: header}, function(err,httpResponse,body){
-    if(httpResponse.statusCode!=200){callback(null);return;}
+
+    if(httpResponse && httpResponse.statusCode!=200){callback(null);return;}
     try{
         let token = JSON.parse(body).sessionToken;
         callback(token);
@@ -55,7 +56,6 @@ function getReservations(callback) {
       "cache-control": "no-cache"
     }
 
-    console.log(GetReservationsURL);
     request.get({url:GetReservationsURL, headers: header}, function(err,httpResponse,body){
     try{
       let res = JSON.parse(body);
@@ -157,8 +157,8 @@ function bookSchedule(dict,authToken,callback) {
         description = dict.description.slice(0,1800);
       }
 
-      let title = "社創中心週三下午拜會:"+dict.name+"\n時間:"+new Date(dict.start).toString();
-      let content = "社創中心週三下午拜會:"+dict.name+"\n時間:"+new Date(dict.start).toString()+"\n預約者:"+dict.username+"\nemail:"+dict.email+"\n行動電話:"+dict.mobile+"\n單位:"+dict.department+"\n拜會內容:"+description;
+      let title = "社創中心週三拜會:"+dict.name+"\n時間:"+new Date(dict.start).toString();
+      let content = "社創中心週三拜會:"+dict.name+"\n時間:"+new Date(dict.start).toString()+"\n預約者:"+dict.username+"\nemail:"+dict.email+"\n行動電話:"+dict.mobile+"\n單位:"+dict.department+"\n拜會內容:"+description;
 
       sendSmsPush(content);
       let receiver = config.mailgunTarget;
