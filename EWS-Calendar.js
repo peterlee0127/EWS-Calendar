@@ -122,7 +122,7 @@ function loadCalendarItem(calItemIDs,callback) {
           attendeeInfo = attendees.join("\n");
         }else {
             let mailBox = attendees.Mailbox;
-            attendeeInfo = "Name: " + mailBox.Name + "\tEmail:"+ mailBox.EmailAddress;
+            attendeeInfo = mailBox.Name + "("+ mailBox.EmailAddress + ")";
         }
     }
     var body = '';
