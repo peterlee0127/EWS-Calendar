@@ -7,7 +7,7 @@ const MomentRange = require('moment-range');
 const moment = MomentRange.extendMoment(Moment);
 const reserveDay = config.reserveDay;
 const now = new Date();
-const start = new Date(now.getFullYear(), now.getMonth(), now.getDate()-2);
+const start = new Date(now.getFullYear(), now.getMonth(), now.getDate()-reserveDay/2);
 const end = new Date(now.getFullYear(), now.getMonth() , now.getDate()+reserveDay*2);
 console.log(start.toString()+"-->"+end.toString());
 
