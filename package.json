@@ -12,7 +12,7 @@
     "axios": "^0.19.2",
     "crypto": "",
     "google-auth-library": "0.*",
-    "googleapis": "^24.0.0",
+    "googleapis": "^39.1.0",
     "httpntlm": "^1.7.6",
     "koa": "^2.5.1",
     "koa-bodyparser": "^4.2.0",
