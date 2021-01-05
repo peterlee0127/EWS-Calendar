@@ -45,8 +45,10 @@ function getReservations(callback) {
 
     let now = new Date();
     let previousDay = new Date(now.getFullYear(), now.getMonth(),  now.getDate()-14 ).toISOString();
-    let endDay = new Date(now.getFullYear(), now.getMonth(),  now.getDate()+92 ).toISOString();
-    // prevent timezone problem.
+    //let endDay = new Date(now.getFullYear(), now.getMonth(),  now.getDate()+92 ).toISOString();
+   //let endDay = new Date("2021-01-31").toISOString(); 
+   let endDay = new Date(now.getFullYear(), now.getMonth(), now.getDate()+103).toISOString();
+// prevent timezone problem.
 
     let GetReservationsURL = config.reserveUrl+`Reservations/?resourceId=65&startDateTime=${previousDay}&endDateTime=${endDay}`;
     let header = {

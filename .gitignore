@@ -3,3 +3,4 @@ calendar.json
 client_secret.json
 data/*.json
 config.json
+data/holiday.json

@@ -6,8 +6,12 @@ var googleAuth = require('google-auth-library');
 
 
 const nowDate = new Date();
-const startDate = new Date(nowDate.getFullYear(), nowDate.getMonth(), 1 ); // current month 1th day.
+const startDate = new Date(new Date().setDate(new Date().getDate() - 30));
 const endDate = new Date(nowDate.getFullYear(), nowDate.getMonth()+6, 1 ); // current month+2 1th day.
+console.log(`
+startDate: ${startDate},
+endDate: ${endDate}
+`);
 // If modifying these scopes, delete your previously saved credentials
 // at ~/.credentials/calendar-nodejs-quickstart.json
 var SCOPES = ['https://www.googleapis.com/auth/calendar'];
@@ -112,7 +116,8 @@ function deleteEvents(auth) {
     auth: auth,
     calendarId: calendarId,
     timeMax: endDate.toISOString(),   // event end time
-    timeMin: new Date(nowDate.getFullYear(), 0, 1 ).toISOString(),   // event start time
+    timeMin: startDate.toISOString(),
+//new Date(nowDate.getFullYear(), 0, 1 ).toISOString(),   // event start time
     maxResults: 2500,
     singleEvents: true,
     orderBy: 'startTime'
@@ -132,14 +137,14 @@ function deleteEvents(auth) {
       for (var i = 0; i < events.length; i++) {
         var event = events[i];
         var tryCount = 2;
-        setTimeout(deleteEvent,1500*i, auth, event.id, tryCount);
+        setTimeout(deleteEvent,500*i, auth, event.id, tryCount);
       }
     }
   });
 }
 
+var calendar = google.calendar('v3');
 function deleteEvent(auth,eventID,tryCount) {
-    var calendar = google.calendar('v3');
   calendar.events.delete({
     auth: auth,
     calendarId: calendarId,
@@ -152,6 +157,7 @@ function deleteEvent(auth,eventID,tryCount) {
         }
     }else {
         eventCount--;
+        console.log(`delete last event ${eventCount}`);
     }
     if(eventCount<=0){
         authorize(JSON.parse(client_secret), addEvents);
