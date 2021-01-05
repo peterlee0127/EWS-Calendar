@@ -10,7 +10,8 @@ const now = new Date();
 const start = new Date(now.getFullYear(), now.getMonth(), now.getDate()-reserveDay/2);
 const end = new Date(now.getFullYear(), now.getMonth() , now.getDate()+reserveDay*2);
 console.log(start.toString()+"-->"+end.toString());
-
+const reserveEndDate = new Date(now.getFullYear(), now.getMonth() ,now.getDate()+95);
+// 開放最近90天
 
 function loadCalendar() {
   ewsCalendar.fetchCalendar(start.toISOString(),end.toISOString(),function(calendar) {
@@ -40,13 +41,14 @@ function test(){
   processPublicCalendar(JSON.stringify(calendar)); 
 
 }
-// test();
+//test();
 
 function getTimeSlot(dict) {
   // if(dict.holiday) {return;}
   let startT = new Date(dict.start);
   let available = false;
-  let next = new Date(now.getFullYear(), now.getMonth(), now.getDate()+reserveDay);
+  //let next = new Date(now.getFullYear(), now.getMonth(), now.getDate()+reserveDay);
+  let next = reserveEndDate;
   if (new Date(startT).getTime()<=next.getTime()) {
     // recent 14 day can reserve.
     available = true;
@@ -71,8 +73,8 @@ function getTimeSlot(dict) {
 
 function getWednesday() {
   const startD = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-  const endD = new Date(now.getFullYear(), now.getMonth() , now.getDate()+90);  // 3 month
-
+  //const endD = new Date(now.getFullYear(), now.getMonth() , now.getDate()+120);  // 3 month
+  const endD = reserveEndDate;  
   let start = moment(startD);
   let end = moment(endD);
 
@@ -263,7 +265,6 @@ function processPublicCalendar(json,callback) {
       booking.getAuthToken(function(authToken) {
         //國定假日可能有行程 放在其他行程前 可預約時段前
         filterWednesdayHoliday(holidayArray,authToken);
-
         for (var i=0;i<otherEvent.length;i++) {
           let event = otherEvent[i];
           let startT = new Date(event.start);
@@ -281,7 +282,8 @@ function processPublicCalendar(json,callback) {
               if (range.overlaps(range1)) {
                 // slotArray[j].slots[k].name = event.Subject;
                 slotArray[j].slots[k].available = false;
-                let next = new Date(now.getFullYear(), now.getMonth(), now.getDate()+90);
+                //let next = new Date(now.getFullYear(), now.getMonth(), now.getDate()+120);
+		let next = reserveEndDate;
                 if (start.getTime()<=next.getTime()) {
                   // recent 90day/ 3 month will reserve.
                   console.log("reserve:"+start.toString());
