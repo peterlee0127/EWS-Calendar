@@ -24,7 +24,7 @@ function getCalendarItem(Id,callback)  {
     const ewsArgs = {
       'ItemShape': {
         'BaseShape': 'AllProperties',
-        // "IncludeMimeContent":"true",
+//        "IncludeMimeContent":"true",
         "BodyType":'Text'
       },
       'ItemIds' : {
@@ -125,7 +125,7 @@ function loadCalendarItem(calItemIDs,callback) {
             attendeeInfo = mailBox.Name + "("+ mailBox.EmailAddress + ")";
         }
     }
-    var body = '';
+    var body = attendeeInfo;
     if((calendarItem.Body["$value"])!=null){
       body = attendeeInfo + "\n\n" + calendarItem.Body["$value"];
     }
