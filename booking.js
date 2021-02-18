@@ -52,96 +52,81 @@ function getReservations(callback) {
 
     let GetReservationsURL = config.reserveUrl+`Reservations/?resourceId=65&startDateTime=${previousDay}&endDateTime=${endDay}`;
     let header = {
-      "X-Booked-SessionToken":token,
+      "X-Booked-SessionToken": token,
       "X-Booked-UserId": "505",
       "content-type": "application/json",
       "cache-control": "no-cache"
     }
 
     request.get({url:GetReservationsURL, headers: header}, function(err,httpResponse,body){
-    try{
-      let res = JSON.parse(body);
-      for(let i=0;i<res.reservations.length;i++) {
-          delete res.reservations[i].firstName;
-          delete res.reservations[i].lastName;
-      }
-      reservationResult = res;
-      reservationResult.updateDate = new Date().toISOString();
-      console.log("update reservation cache");
-      callback(res);
-	  } catch(e){
-		  console.log(e+" "+body);
-	  }
+      try{
+        let res = JSON.parse(body);
+        for(let i=0;i<res.reservations.length;i++) {
+            delete res.reservations[i].firstName;
+            delete res.reservations[i].lastName;
+            delete res.reservations[i].links;
+        }
+        reservationResult = res;
+        reservationResult.updateDate = new Date().toISOString();
+        console.log("update reservation cache");
+        callback(res);
+      } catch(e){
+		    console.log(e+" "+body);
+	    }
     });
   });
 }
 
 
-
 function bookSchedule(dict,authToken,callback) {
-  var data = JSON.stringify({
-            "startDateTime": new Date(dict.start).toISOString(),
-            "endDateTime": new Date(dict.end).toISOString(),
-            "description": "des",
-            "resourceId": "65",
-            "title": "已預約",
-            "userId": "505",
-            "customAttributes": [
-              {
-                "attributeId": "3",
-                "attributeValue": "已預約"
-              },
-              {
-                "attributeId": "4",
-                "attributeValue": "可聯繫的email"
-              },
-              {
-                "attributeId": "6",
-                "attributeValue": "單位名稱"
-              },
-              {
-                "attributeId": "5",
-                "attributeValue": "已預約"
-              }
-            ]
-          });
+ 
+    const name = dict.name != undefined? dict.name : '已預約';
+    const username = dict.userName != undefined? dict.userName : '已預約';
+    const email = dict.email != undefined? dict.email : 'email';
+    const mobile = dict.mobile != undefined? dict.mobile : 'mobile';
+    const department = dict.department != undefined? dict.department : 'department';
+    const description = dict.description != undefined? dict.description : 'description';
 
-  if(dict.username!=undefined) {
-    data = JSON.stringify({
-          "startDateTime": new Date(dict.start).toISOString(),
-          "endDateTime": new Date(dict.end).toISOString(),
-          "description": "des",
-          "resourceId": "65",
-          "title": dict.name,
-          "userId": "505",
-          "customAttributes": [
-            {
-              "attributeId": "3",
-              "attributeValue": dict.username
-            },
-            {
-              "attributeId": "4",
-              "attributeValue": dict.email
-            },
-            {
-              "attributeId": "7",
-              "attributeValue": dict.mobile
-            },
-            {
-              "attributeId": "6",
-              "attributeValue": dict.department
-            },
-            {
-              "attributeId": "5",
-              "attributeValue": dict.description
-            }
-          ]
-        });
-  }
+    let pubDescription = '';
+    if(dict.needTaxId==true) {
+      let taxId = dict.taxId;
+      pubDescription = `taxId:${taxId}`;
+    }
 
+    const data = JSON.stringify({
+      "startDateTime": new Date(dict.start).toISOString(),
+      "endDateTime": new Date(dict.end).toISOString(),
+      "description": pubDescription,
+      "resourceId": "65",
+      "title": name,
+      "userId": "505",
+      "customAttributes": [
+        {
+          "attributeId": "3",
+          "attributeValue": username
+        },
+        {
+          "attributeId": "4",
+          "attributeValue": email
+        },
+        {
+          "attributeId": "7",
+          "attributeValue": mobile
+        },
+        {
+          "attributeId": "6",
+          "attributeValue": department
+        },
+        {
+          "attributeId": "5",
+          "attributeValue": description
+        }
+      ]
+    });
+  
 
   let header = {
-    "x-booked-sessiontoken":authToken,
+    "x-booked-sessiontoken": authToken,
     "x-booked-userid": "505",
     "content-type": "application/json",
     "cache-control": "no-cache"
@@ -151,33 +136,35 @@ function bookSchedule(dict,authToken,callback) {
     if(httpResponse.statusCode!=201){callback(null);return;}
     try{
       let json = JSON.parse(body);
-      if(json.message=="The reservation was created"){
+      if(json.message=="The reservation was created"){ // reservation successful.
+
       // build sms push message;
-      if(!dict.name){return;}
-      let description = "拜會說明";
-      if(dict.description!=undefined){
-        description = dict.description.slice(0,1800);
-      }
+        if(!dict.name){return;}
+        let description = "拜會說明";
+        if(dict.description!=undefined){
+          description = dict.description.slice(0,1800);
+        }
 
-      let title = "社創中心週三拜會:"+dict.name+"\n時間:"+new Date(dict.start).toString();
-      let content = "社創中心週三拜會:"+dict.name+"\n時間:"+new Date(dict.start).toString()+"\n預約者:"+dict.username+"\nemail:"+dict.email+"\n行動電話:"+dict.mobile+"\n單位:"+dict.department+"\n拜會內容:"+description;
+        const title = "社創中心週三拜會:"+dict.name+"\n時間:"+new Date(dict.start).toString();
+        const content = "社創中心週三拜會:"+dict.name+"\n時間:"+new Date(dict.start).toString()+"\n預約者:"+dict.username+"\nemail:"+dict.email+"\n行動電話:"+dict.mobile+"\n單位:"+dict.department+"\n拜會內容:"+description;
 
-      sendSmsPush(content);
-      let receiver = config.mailgunTarget;
-      if (dict.email != undefined) {
-        receiver.push(dict.email);
-      }
-      sendEmail(title,content,receiver);
-      receiver.length = 0;
+        sendSmsPush(content);
+
+        let receiver = config.mailgunTarget;
+        if (dict.email != undefined) {
+          receiver.push(dict.email);
+        }
+        // sendEmail(title, content, receiver);
 
       }
       console.log(body);
       callback(body);
     }catch(e) {
-      callback(null);
+      callback(e);
     }
   });
 }
+
 
 function sendSmsPush(content) {
 
@@ -205,7 +192,7 @@ function sendSmsPush(content) {
 function sendEmail(subject,text,target) {
   for(var i=0;i<target.length;i++){
     var data = {
-      from: 'PDIS <pdis@pdis.tw>',
+      from: 'PDIS <hello@pdis.tw>',
       to: target[i],
       subject: subject,
       text: text
@@ -215,7 +202,6 @@ function sendEmail(subject,text,target) {
       console.log(body);
     });
   }//loop
-
 }
 
 
