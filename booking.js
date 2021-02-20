@@ -30,7 +30,7 @@ function getAuthToken(callback) {
 
 
 let reservationResult = {};
-function getReservations(callback) {
+function getReservations(callback, getRecentMonthReservation = false) {
   let nowTS = new Date().getTime()/1000;
   let reservationTS = new Date(reservationResult.updateDate).getTime()/1000;
   if(reservationResult!=undefined && reservationTS+5>=nowTS)  {
@@ -49,6 +49,10 @@ function getReservations(callback) {
    //let endDay = new Date("2021-01-31").toISOString(); 
    let endDay = new Date(now.getFullYear(), now.getMonth(), now.getDate()+103).toISOString();
 // prevent timezone problem.
+    if(getRecentMonthReservation==true) {
+      previousDay = new Date(now.getFullYear(), now.getMonth(),  now.getDate()-120 ).toISOString();
+      endDay = new Date(now.getFullYear(), now.getMonth(), now.getDate()+120).toISOString();
+    }
 
     let GetReservationsURL = config.reserveUrl+`Reservations/?resourceId=65&startDateTime=${previousDay}&endDateTime=${endDay}`;
     let header = {
@@ -78,6 +82,64 @@ function getReservations(callback) {
 }
 
 
+function getReservationsWithTaxId(callback) {
+  getReservations( reservations=> {
+    let reservationArray = [];
+    for(let i=0;i<reservations.reservations.length;i++) {
+      let item = reservations.reservations[i];
+      if(item.description.includes("taxId")) {
+        const regexp = /taxId:[0-9]*/gi;
+        const matches_array = item.description.match(regexp);
+        if(matches_array.length>0) {
+          // only take the first taxId.
+          let taxId = matches_array[0].split("taxId:")[1];
+          const date = item.startDate.split('T')[0];
+          reservationArray.push({ 
+            'title': item.title,
+            'date': date,
+            'startDate': item.startDate,
+            'endDate': item.endDate,
+            'taxId': taxId
+          });
+
+        }
+  
+      }
+    }
+    console.log(reservationArray);
+    callback(reservationArray)
+  }, true);
+}
+
+function checkUserCanReserveOfNot(skip ,taxId, reserveDay, canReserve) {
+  if(skip) {
+    canReserve(true);
+    return;
+  }
+  // check user has any reservation with 3 month.
+  let reserveDate = reserveDay.split("T")[0]; 
+  getReservationsWithTaxId(reservationArray => {
+      for(var i=0;i<reservationArray.length;i++) {
+        let reserveItem = reservationArray[i];
+        let day = Math.abs((new Date(reserveItem.date).getTime()-new Date(reserveDate).getTime())/86400/1000);
+        console.log(day); 
+        if(day<=90) {
+          canReserve(false, `無法預約，90天內已有預約紀錄，上次預約於 date: ${reserveItem.date}, taxId: ${taxId}。\nSorry, You can't reserve in 90 days.`);
+          return;
+        }
+      }
+      canReserve(true);
+  }) 
+}
+
+// // dict.taxId, dict.start
+// checkUserCanReserveOfNot(false, '11111111', '2021-05-01T03:00:00+0000', (canReserve, info) =>{
+//   console.log(canReserve);
+//   console.log(info);
+//   // 無法預約，90天內已有預約紀錄
+// });
+
+
 function bookSchedule(dict,authToken,callback) {
  
     const name = dict.name != undefined? dict.name : '已預約';
@@ -87,11 +149,23 @@ function bookSchedule(dict,authToken,callback) {
     const department = dict.department != undefined? dict.department : 'department';
     const description = dict.description != undefined? dict.description : 'description';
 
+    const taxId = dict.taxId != undefined? dict.taxId : '';
+    const skip = taxId == ''? true : false;
+
     let pubDescription = '';
     if(dict.needTaxId==true) {
-      let taxId = dict.taxId;
+      // new version with taxId.
       pubDescription = `taxId:${taxId}`;
     }
+    let startTime = new Date(dict.start).toISOString();
+    // dict.taxId, dict.start
+
+    //  // 無法預約，90天內已有預約紀錄
+    checkUserCanReserveOfNot(skip, taxId, startTime, (canReserve, info) =>{
+      if(canReserve==false) {
+        callback(info); 
+        return;
+      }
 
     const data = JSON.stringify({
       "startDateTime": new Date(dict.start).toISOString(),
@@ -163,6 +237,9 @@ function bookSchedule(dict,authToken,callback) {
       callback(e);
     }
   });
+
+     
+    }); // checkUserCanReserveOfNot.
 }
 
 
