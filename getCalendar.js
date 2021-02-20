@@ -7,8 +7,9 @@ const MomentRange = require('moment-range');
 const moment = MomentRange.extendMoment(Moment);
 const reserveDay = config.reserveDay;
 const now = new Date();
-const start = new Date(now.getFullYear(), now.getMonth(), now.getDate()-reserveDay/2);
-const end = new Date(now.getFullYear(), now.getMonth() , now.getDate()+reserveDay*2);
+
+let start = new Date(now.getFullYear(), now.getMonth(), now.getDate()-reserveDay/2);
+let end = new Date(now.getFullYear(), now.getMonth() , now.getDate()+reserveDay*2);
 console.log(start.toString()+"-->"+end.toString());
 const reserveEndDate = new Date(now.getFullYear(), now.getMonth() ,now.getDate()+95);
 // 開放最近90天
@@ -192,7 +193,7 @@ function processPublicCalendar(json,callback) {
         end: item.End,
         holiday: false
       };
-      // console.log(item['Start']+" "+item.Subject);
+      //console.log(item['Start']+" "+item.Subject);
 
       if (item.Subject == '[au] 空總 Office Hour-booking-上午') {
         // officeHourArray.push(dict);
