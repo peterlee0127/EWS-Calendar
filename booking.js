@@ -228,12 +228,13 @@ function bookSchedule(dict,callback) {
         if (dict.email != undefined) {
           receiver.push(dict.email);
         }
-        // sendEmail(title, content, receiver);
+        sendEmail(content, receiver);
 
       }
       console.log(body);
       callback(body);
     }catch(e) {
+      console.log(e);
       callback(e);
     }
   });
@@ -249,16 +250,16 @@ function sendSmsPush(content) {
   let text = {
     events:[
     {
-      type:'push_request',
-      uid:config.smsTarget,
-      text:content
+      type: 'push_request',
+      uid: config.smsTarget,
+      text: content
     }]
   };
 
   const smsMessage = {
-    method:'POST',
-    url:'http://127.0.0.1:8081',
-    'body':JSON.stringify(text),
+    method: 'POST',
+    url: 'http://127.0.0.1:8081',
+    'body': JSON.stringify(text),
     'headers': {"Content-Type":"application/json; charset=utf-8"}
   }
   request.post(smsMessage,function(error,response,body){
@@ -267,13 +268,22 @@ function sendSmsPush(content) {
 
 }
 
-function sendEmail(subject,text,target) {
+function sendEmail(content,target) {
   for(var i=0;i<target.length;i++){
     var data = {
       from: 'PDIS <hello@pdis.tw>',
       to: target[i],
-      subject: subject,
-      text: text
+      subject: '唐鳳拜會預約成功通知',
+      text: `
+      你好：
+
+      你已預約唐鳳拜會，拜會地點為社會創新實驗中心（仁愛路三段99號），預約資訊如下，如需更改或取消，請直接回覆此信件。本辦保留調整預約的權利。
+
+      ${content}
+      
+      *此信箱僅接受拜會相關問題來信，媒體邀約或其餘提問請致電 02-33566577
+
+      `
     };
 
     mailgun.messages().send(data, function (error, body) {
@@ -281,6 +291,7 @@ function sendEmail(subject,text,target) {
     });
   }//loop
 }
+
 
 
 exports.getReservations = getReservations;
