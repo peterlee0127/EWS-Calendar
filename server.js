@@ -28,17 +28,21 @@ async function readCalendar(path) {
 
 async function reserve(body) {
   return new Promise((resolve, reject) => {
-    booking.bookSchedule(body,function(response) {
+   booking.getAuthToken( token=> {
+    booking.bookSchedule(body, token,function(response) {
       resolve({"message":response})
     });
+   });
  });
 }
 
 async function getReserve(body) {
   return new Promise((resolve, reject) => {
+   booking.getAuthToken( token=> {
     booking.getReservations(function(body){
         resolve(body)
-    });
+    },token);
+  });
  });
 }
 

@@ -1,7 +1,7 @@
 var fs = require('fs');
 var readline = require('readline');
 const calendarId = require('./config.js').calendarId;
-var google = require('googleapis');
+var {google} = require('googleapis');
 var googleAuth = require('google-auth-library');
 
 
@@ -34,39 +34,22 @@ fs.readFile('client_secret.json', function processClientSecrets(err, content) {
   //authorize(JSON.parse(content), addEvents);
 });
 
-/**
- * Create an OAuth2 client with the given credentials, and then execute the
- * given callback function.
- *
- * @param {Object} credentials The authorization client credentials.
- * @param {function} callback The callback to call with the authorized client.
- */
+
 function authorize(credentials, callback) {
-  var clientSecret = credentials.installed.client_secret;
-  var clientId = credentials.installed.client_id;
-  var redirectUrl = credentials.installed.redirect_uris[0];
-  var auth = new googleAuth();
-  var oauth2Client = new auth.OAuth2(clientId, clientSecret, redirectUrl);
+  const {client_secret, client_id, redirect_uris} = credentials.installed;
+  const oAuth2Client = new google.auth.OAuth2(
+      client_id, client_secret, redirect_uris[0]);
 
   // Check if we have previously stored a token.
-  fs.readFile(TOKEN_PATH, function(err, token) {
-    if (err) {
-      getNewToken(oauth2Client, callback);
-    } else {
-      oauth2Client.credentials = JSON.parse(token);
-      callback(oauth2Client);
-    }
+  fs.readFile(TOKEN_PATH, (err, token) => {
+	if (err) return getAccessToken(oAuth2Client, callback);
+	
+	oAuth2Client.setCredentials(JSON.parse(token));
+	callback(oAuth2Client);
   });
 }
 
-/**
- * Get and store new token after prompting for user authorization, and then
- * execute the given callback with the authorized OAuth2 client.
- *
- * @param {google.auth.OAuth2} oauth2Client The OAuth2 client to get token for.
- * @param {getEventsCallback} callback The callback to call with the authorized
- *     client.
- */
+
 function getNewToken(oauth2Client, callback) {
   var authUrl = oauth2Client.generateAuthUrl({
     access_type: 'offline',
@@ -108,16 +91,22 @@ function storeToken(token) {
   console.log('Token stored to ' + TOKEN_PATH);
 }
 
+var getDaysArray = function(start, end) {
+    for(var arr=[],dt=new Date(start); dt<=end; dt.setDate(dt.getDate()+1)){
+        arr.push(new Date(dt));
+    }
+    return arr;
+};
 
-var eventCount = 0;
+let eventCount = 0;
 function deleteEvents(auth) {
-  var calendar = google.calendar('v3');
+  var calendar = google.calendar({version: 'v3', auth});
+  const deleteStartDate = new Date(new Date().setDate(new Date().getDate() - 90));
   calendar.events.list({
     auth: auth,
     calendarId: calendarId,
     timeMax: endDate.toISOString(),   // event end time
-    timeMin: startDate.toISOString(),
-//new Date(nowDate.getFullYear(), 0, 1 ).toISOString(),   // event start time
+    timeMin: deleteStartDate.toISOString(),
     maxResults: 2500,
     singleEvents: true,
     orderBy: 'startTime'
@@ -126,7 +115,7 @@ function deleteEvents(auth) {
       console.log('The API returned an error: ' + err);
       return;
     }
-    var events = response.items;
+    var events = response.data.items;
     eventCount = events.length;
     if (events.length == 0) {
 
@@ -137,14 +126,14 @@ function deleteEvents(auth) {
       for (var i = 0; i < events.length; i++) {
         var event = events[i];
         var tryCount = 2;
-        setTimeout(deleteEvent,500*i, auth, event.id, tryCount);
+        setTimeout(deleteEvent, 800*i, auth, event.id, tryCount);
       }
     }
   });
 }
 
-var calendar = google.calendar('v3');
 function deleteEvent(auth,eventID,tryCount) {
+  var calendar = google.calendar({version: 'v3', auth});
   calendar.events.delete({
     auth: auth,
     calendarId: calendarId,
@@ -199,10 +188,10 @@ function addEvents(auth) {
             'end': {
                 'dateTime': end,
             },
-            'description':body+'\n此事件同步於 '+new Date(updateTime).toString()
+            'description':body+'\n\nOutlook更新於: '+new Date(updateTime).toString() + "\n行事曆同步於: " + new Date().toString()
         };
         var tryCount = 3;
-        setTimeout(addEvent,1500*i, auth, event, tryCount);
+        setTimeout(addEvent, 2800*i, auth, event, tryCount);
         } // for loop
 
     });
@@ -210,6 +199,9 @@ function addEvents(auth) {
 
 
 function addEvent(auth, event, tryCount) {
+    if(event!=undefined){
+      console.log(event.start.dateTime);
+    }
     var calendar = google.calendar('v3');
     calendar.events.insert({
         auth: auth,
@@ -224,6 +216,6 @@ function addEvent(auth, event, tryCount) {
             return;
         }
     }        
-    console.log('Event created: %s', event.htmlLink);
+    console.log('Event created: %s', event.data.htmlLink);
     });
 }

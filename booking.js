@@ -30,7 +30,7 @@ function getAuthToken(callback) {
 
 
 let reservationResult = {};
-function getReservations(callback, getRecentMonthReservation = false) {
+function getReservations(callback, token, getRecentMonthReservation = false) {
   let nowTS = new Date().getTime()/1000;
   let reservationTS = new Date(reservationResult.updateDate).getTime()/1000;
   if(reservationResult!=undefined && reservationTS+5>=nowTS)  {
@@ -40,7 +40,6 @@ function getReservations(callback, getRecentMonthReservation = false) {
   }else {
     console.log("will update reservation cache");
   }
-  getAuthToken(token => {
     if(!token){console.log('token not exist');return;}
 
     let now = new Date();
@@ -78,11 +77,10 @@ function getReservations(callback, getRecentMonthReservation = false) {
 		    console.log(e+" "+body);
 	    }
     });
-  });
 }
 
 
-function getReservationsWithTaxId(callback) {
+function getReservationsWithTaxId(token, callback) {
   getReservations( reservations=> {
     let reservationArray = [];
     for(let i=0;i<reservations.reservations.length;i++) {
@@ -107,17 +105,17 @@ function getReservationsWithTaxId(callback) {
       }
     }
     callback(reservationArray)
-  }, true);
+  }, token, true);
 }
 
-function checkUserCanReserveOfNot(skip ,taxId, reserveDay, canReserve) {
+function checkUserCanReserveOfNot(token, skip ,taxId, reserveDay, canReserve) {
   if(skip) {
     canReserve(true);
     return;
   }
   // check user has any reservation with 3 month.
   let reserveDate = reserveDay.split("T")[0]; 
-  getReservationsWithTaxId(reservationArray => {
+  getReservationsWithTaxId(token, reservationArray => {
       for(var i=0;i<reservationArray.length;i++) {
         let reserveItem = reservationArray[i];
         let day = Math.abs((new Date(reserveItem.date).getTime()-new Date(reserveDate).getTime())/86400/1000);
@@ -138,7 +136,7 @@ function checkUserCanReserveOfNot(skip ,taxId, reserveDay, canReserve) {
 // });
 
 
-function bookSchedule(dict,callback) {
+function bookSchedule(dict, authToken, callback) {
  
     const name = dict.name != undefined? dict.name : '已預約';
     const username = dict.userName != undefined? dict.userName : '已預約';
@@ -159,13 +157,11 @@ function bookSchedule(dict,callback) {
     // dict.taxId, dict.start
 
     //  // 無法預約，90天內已有預約紀錄
-    checkUserCanReserveOfNot(skip, taxId, startTime, (canReserve, info) =>{
+    checkUserCanReserveOfNot(authToken, skip, taxId, startTime, (canReserve, info) =>{
       if(canReserve==false) {
         callback(info); 
         return;
       }
-
-    getAuthToken(authToken => {
 
     const data = JSON.stringify({
       "startDateTime": new Date(dict.start).toISOString(),
@@ -208,6 +204,7 @@ function bookSchedule(dict,callback) {
 
   request.post({url:config.reserveUrl+'Reservations/', form:data, headers: header}, function(err, httpResponse, body){
     if(httpResponse.statusCode!=201){callback(null);return;}
+
     try{
       let json = JSON.parse(body);
       if(json.message=="The reservation was created"){ // reservation successful.
@@ -239,8 +236,6 @@ function bookSchedule(dict,callback) {
     }
   });
 
-  }); // getAuthtoken
-     
   }); // checkUserCanReserveOfNot.
 }
 
