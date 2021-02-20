@@ -5,6 +5,8 @@ const api_key = config.mailgunKey;
 const DOMAIN = config.mailgunDomain;
 const mailgun = require('mailgun-js')({apiKey: api_key, domain: DOMAIN});
 
+
+let storeAuthInfo = {'expiredTime':undefined ,'token': undefined};
 function getAuthToken(callback) {
   let data = JSON.stringify({
     "username": config.reserveAccount,
@@ -15,11 +17,28 @@ function getAuthToken(callback) {
     "content-type": "application/json",
     "cache-control": "no-cache"
   }
-  request.post({url:config.reserveUrl+'Authentication/Authenticate', form:data, headers: header}, function(err,httpResponse,body){
+  if(storeAuthInfo.expiredTime!=undefined) {
+    let tokenTS = new Date(storeAuthInfo.expiredTime);
+    let nowTS = new Date();
+    let expiredMinute = (tokenTS.getTime()-nowTS.getTime())/1000/60;
+    console.log('expiredMinute: '+expiredMinute);
+    if(expiredMinute>2) {
+      console.log(`reuse token: ${JSON.stringify(storeAuthInfo)}`);
+      callback(storeAuthInfo.token);
+      return;
+    }
+  }
+
+  request.post({url:config.reserveUrl+'Authentication/Authenticate', form:data, headers: header}, function(err, httpResponse, body){
 
     if(httpResponse && httpResponse.statusCode!=200){callback(null);return;}
     try{
-        let token = JSON.parse(body).sessionToken;
+        let parsedBody = JSON.parse(body);
+        let token = parsedBody.sessionToken;
+        let expiredTime = parsedBody.sessionExpires;
+        storeAuthInfo.token = token;
+        storeAuthInfo.expiredTime = expiredTime;
+        console.log(`create token: ${JSON.stringify(storeAuthInfo)}`);
         callback(token);
     }catch(e){
         console.log(e);
