@@ -28,10 +28,8 @@ async function readCalendar(path) {
 
 async function reserve(body) {
   return new Promise((resolve, reject) => {
-    booking.getAuthToken(function(token){
-        booking.bookSchedule(body,token,function(response) {
-          resolve({"message":response})
-        });
+    booking.bookSchedule(body,function(response) {
+      resolve({"message":response})
     });
  });
 }

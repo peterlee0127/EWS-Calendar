@@ -106,7 +106,6 @@ function getReservationsWithTaxId(callback) {
   
       }
     }
-    console.log(reservationArray);
     callback(reservationArray)
   }, true);
 }
@@ -122,7 +121,6 @@ function checkUserCanReserveOfNot(skip ,taxId, reserveDay, canReserve) {
       for(var i=0;i<reservationArray.length;i++) {
         let reserveItem = reservationArray[i];
         let day = Math.abs((new Date(reserveItem.date).getTime()-new Date(reserveDate).getTime())/86400/1000);
-        console.log(day); 
         if(day<=90) {
           canReserve(false, `無法預約，90天內已有預約紀錄，上次預約於 date: ${reserveItem.date}, taxId: ${taxId}。\nSorry, You can't reserve in 90 days.`);
           return;
@@ -140,7 +138,7 @@ function checkUserCanReserveOfNot(skip ,taxId, reserveDay, canReserve) {
 // });
 
 
-function bookSchedule(dict,authToken,callback) {
+function bookSchedule(dict,callback) {
  
     const name = dict.name != undefined? dict.name : '已預約';
     const username = dict.userName != undefined? dict.userName : '已預約';
@@ -166,6 +164,8 @@ function bookSchedule(dict,authToken,callback) {
         callback(info); 
         return;
       }
+
+    getAuthToken(authToken => {
 
     const data = JSON.stringify({
       "startDateTime": new Date(dict.start).toISOString(),
@@ -206,7 +206,7 @@ function bookSchedule(dict,authToken,callback) {
     "cache-control": "no-cache"
   }
 
-  request.post({url:config.reserveUrl+'Reservations/', form:data, headers: header}, function(err,httpResponse,body){
+  request.post({url:config.reserveUrl+'Reservations/', form:data, headers: header}, function(err, httpResponse, body){
     if(httpResponse.statusCode!=201){callback(null);return;}
     try{
       let json = JSON.parse(body);
@@ -238,8 +238,9 @@ function bookSchedule(dict,authToken,callback) {
     }
   });
 
+  }); // getAuthtoken
      
-    }); // checkUserCanReserveOfNot.
+  }); // checkUserCanReserveOfNot.
 }
 
 
