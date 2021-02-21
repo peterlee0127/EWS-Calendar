@@ -8,15 +8,6 @@ const mailgun = require('mailgun-js')({apiKey: api_key, domain: DOMAIN});
 
 let storeAuthInfo = {'expiredTime':undefined ,'token': undefined};
 function getAuthToken(callback) {
-  let data = JSON.stringify({
-    "username": config.reserveAccount,
-    "password": config.reservePassword
-  });
-
-  let header = {
-    "content-type": "application/json",
-    "cache-control": "no-cache"
-  }
   if(storeAuthInfo.expiredTime!=undefined) {
     let tokenTS = new Date(storeAuthInfo.expiredTime);
     let nowTS = new Date();
@@ -28,10 +19,18 @@ function getAuthToken(callback) {
       return;
     }
   }
+  const header = {
+    "content-type": "application/json",
+    "cache-control": "no-cache"
+  }
+  const data = JSON.stringify({
+    "username": config.reserveAccount,
+    "password": config.reservePassword
+  });
   const url = config.reserveUrl+'Authentication/Authenticate';
   axios({
     "method": "POST",
-    "url": config.reserveUrl+'Reservations/',
+    "url": url,
     "headers": header,
     "data": data
   })
