@@ -5,6 +5,30 @@ const api_key = config.mailgunKey;
 const DOMAIN = config.mailgunDomain;
 const mailgun = require('mailgun-js')({apiKey: api_key, domain: DOMAIN});
 
+function checkToken(token, callback) {
+  const url = config.reserveUrl + '/Web/Services/index.php/Users/';
+  let header = {
+    'X-Booked-SessionToken': token,
+    'X-Booked-UserId': '505',
+    'content-type': 'application/json',
+    'cache-control': 'no-cache'
+  }
+
+  axios({
+    'method': 'GET',
+    'url': url,
+    'headers': header,
+  })
+  .then(function (response) {
+    console.log(response.data);
+    callback(true);
+  }).catch( e=> {
+    console.log(e);
+    callback(false);
+  });
+
+}
+
 
 let storeAuthInfo = {'expiredTime':undefined ,'token': undefined};
 function getAuthToken(callback) {
@@ -19,44 +43,53 @@ function getAuthToken(callback) {
       return;
     }
   }
-  const header = {
-    'content-type': 'application/json',
-    'cache-control': 'no-cache'
-  }
-  const data = JSON.stringify({
-    'username': config.reserveAccount,
-    'password': config.reservePassword
-  });
-  const url = config.reserveUrl+'Authentication/Authenticate';
-  axios({
-    'method': 'POST',
-    'url': url,
-    'headers': header,
-    'data': data
-  })
-  .then(function (response) {
-    if(response.status!=200) {
-      callback(response.data);
+  checkToken(storeAuthInfo.token ,tokenIsValid => {
+    if(tokenIsValid==true) {
+      callback();
       return;
     }
-    try{
-      let parsedBody = response.data;
-      let token = parsedBody.sessionToken;
-      let expiredTime = parsedBody.sessionExpires;
-      storeAuthInfo.token = token;
-      storeAuthInfo.expiredTime = expiredTime;
-      console.log(`create token: ${JSON.stringify(storeAuthInfo)}`);
-      callback(token);
-    }catch(e){
-        console.log(e);
-        callback(null);
+
+    const header = {
+      'content-type': 'application/json',
+      'cache-control': 'no-cache'
     }
-  }).catch(function (error) {
-    console.log(error);
-    callback(error);
-  }); 
+    const data = JSON.stringify({
+      'username': config.reserveAccount,
+      'password': config.reservePassword
+    });
+    const url = config.reserveUrl+'Authentication/Authenticate';
+    axios({
+      'method': 'POST',
+      'url': url,
+      'headers': header,
+      'data': data
+    })
+    .then(function (response) {
+      if(response.status!=200) {
+        callback(response.data);
+        return;
+      }
+      try{
+        let parsedBody = response.data;
+        let token = parsedBody.sessionToken;
+        let expiredTime = parsedBody.sessionExpires;
+        storeAuthInfo.token = token;
+        storeAuthInfo.expiredTime = expiredTime;
+        console.log(`create token: ${JSON.stringify(storeAuthInfo)}`);
+        callback(token);
+      }catch(e){
+          console.log(e);
+          callback(null);
+      }
+    }).catch(function (error) {
+      console.log(error);
+      callback(error);
+    }); 
+  });
 
 }
+
+getAuthToken(token=>{});
 
 
 function getReservations(callback, token, getRecentMonthReservation = false) {
