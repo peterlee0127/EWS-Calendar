@@ -20,19 +20,19 @@ function getAuthToken(callback) {
     }
   }
   const header = {
-    "content-type": "application/json",
-    "cache-control": "no-cache"
+    'content-type': 'application/json',
+    'cache-control': 'no-cache'
   }
   const data = JSON.stringify({
-    "username": config.reserveAccount,
-    "password": config.reservePassword
+    'username': config.reserveAccount,
+    'password': config.reservePassword
   });
   const url = config.reserveUrl+'Authentication/Authenticate';
   axios({
-    "method": "POST",
-    "url": url,
-    "headers": header,
-    "data": data
+    'method': 'POST',
+    'url': url,
+    'headers': header,
+    'data': data
   })
   .then(function (response) {
     if(response.status!=200) {
@@ -64,10 +64,10 @@ function getReservations(callback, token, getRecentMonthReservation = false) {
 
     let now = new Date();
     let previousDay = new Date(now.getFullYear(), now.getMonth(),  now.getDate()-14 ).toISOString();
-    //let endDay = new Date(now.getFullYear(), now.getMonth(),  now.getDate()+92 ).toISOString();
-   //let endDay = new Date("2021-01-31").toISOString(); 
-   let endDay = new Date(now.getFullYear(), now.getMonth(), now.getDate()+103).toISOString();
-// prevent timezone problem.
+ 
+    let endDay = new Date(now.getFullYear(), now.getMonth(), now.getDate()+103).toISOString();
+    // prevent timezone problem.
+
     if(getRecentMonthReservation==true) {
       previousDay = new Date(now.getFullYear(), now.getMonth(),  now.getDate()-120 ).toISOString();
       endDay = new Date(now.getFullYear(), now.getMonth(), now.getDate()+120).toISOString();
@@ -75,16 +75,16 @@ function getReservations(callback, token, getRecentMonthReservation = false) {
 
     let getReservationsURL = config.reserveUrl+`Reservations/?resourceId=65&startDateTime=${previousDay}&endDateTime=${endDay}`;
     let header = {
-      "X-Booked-SessionToken": token,
-      "X-Booked-UserId": "505",
-      "content-type": "application/json",
-      "cache-control": "no-cache"
+      'X-Booked-SessionToken': token,
+      'X-Booked-UserId': '505',
+      'content-type': 'application/json',
+      'cache-control': 'no-cache'
     }
 
     axios({
-      "method": "GET",
-      "url": getReservationsURL,
-      "headers": header,
+      'method': 'GET',
+      'url': getReservationsURL,
+      'headers': header,
     })
     .then(function (response) {
       try{
@@ -113,12 +113,12 @@ function getReservationsWithTaxId(token, callback) {
     let reservationArray = [];
     for(let i=0;i<reservations.reservations.length;i++) {
       let item = reservations.reservations[i];
-      if(item.description.includes("taxId")) {
+      if(item.description.includes('taxId')) {
         const regexp = /taxId:[0-9]*/gi;
         const matches_array = item.description.match(regexp);
         if(matches_array.length>0) {
           // only take the first taxId.
-          let taxId = matches_array[0].split("taxId:")[1];
+          let taxId = matches_array[0].split('taxId:')[1];
           const date = item.startDate.split('T')[0];
           reservationArray.push({ 
             'title': item.title,
@@ -142,7 +142,7 @@ function checkUserCanReserveOfNot(token, skip ,taxId, reserveDay, canReserve) {
     return;
   }
   // check user has any reservation with 3 month.
-  let reserveDate = reserveDay.split("T")[0]; 
+  let reserveDate = reserveDay.split('T')[0]; 
   getReservationsWithTaxId(token, reservationArray => {
       for(var i=0;i<reservationArray.length;i++) {
         let reserveItem = reservationArray[i];
@@ -185,49 +185,49 @@ function bookSchedule(dict, authToken, callback) {
       }
 
     const data = JSON.stringify({
-      "startDateTime": new Date(dict.start).toISOString(),
-      "endDateTime": new Date(dict.end).toISOString(),
-      "description": pubDescription,
-      "resourceId": "65",
-      "title": name,
-      "userId": "505",
-      "customAttributes": [
+      'startDateTime': new Date(dict.start).toISOString(),
+      'endDateTime': new Date(dict.end).toISOString(),
+      'description': pubDescription,
+      'resourceId': '65',
+      'title': name,
+      'userId': '505',
+      'customAttributes': [
         {
-          "attributeId": "3",
-          "attributeValue": username
+          'attributeId': '3',
+          'attributeValue': username
         },
         {
-          "attributeId": "4",
-          "attributeValue": email
+          'attributeId': '4',
+          'attributeValue': email
         },
         {
-          "attributeId": "7",
-          "attributeValue": mobile
+          'attributeId': '7',
+          'attributeValue': mobile
         },
         {
-          "attributeId": "6",
-          "attributeValue": department
+          'attributeId': '6',
+          'attributeValue': department
         },
         {
-          "attributeId": "5",
-          "attributeValue": description
+          'attributeId': '5',
+          'attributeValue': description
         }
       ]
     });
   
 
   let header = {
-    "x-booked-sessiontoken": authToken,
-    "x-booked-userid": "505",
-    "content-type": "application/x-www-form-urlencode;charset=utf-8;",
-    "cache-control": "no-cache"
+    'x-booked-sessiontoken': authToken,
+    'x-booked-userid': '505',
+    'content-type': 'application/x-www-form-urlencode;charset=utf-8;',
+    'cache-control': 'no-cache'
   }
 
   axios({
-    "method": "POST",
-    "url": config.reserveUrl+'Reservations/',
-    "headers": header,
-    "data": data
+    'method': 'POST',
+    'url': config.reserveUrl+'Reservations/',
+    'headers': header,
+    'data': data
   })
   .then(function (response) {
     // handle success
@@ -235,19 +235,19 @@ function bookSchedule(dict, authToken, callback) {
     try{
       const body = response.data;
       let json = body;
-      if(json.message=="The reservation was created"){ // reservation successful.
+      if(json.message=='The reservation was created'){ // reservation successful.
 
       // build sms push message;
         if(!dict.name){return;}
-        let description = "拜會說明";
+        let description = '拜會說明';
         if(dict.description!=undefined){
           description = dict.description.slice(0,1800);
         }
 
-        const title = "社創中心週三拜會:"+dict.name+"\n時間:"+new Date(dict.start).toString();
-        const content = "社創中心週三拜會:"+dict.name+"\n時間:"+new Date(dict.start).toString()+"\n預約者:"+dict.username+"\nemail:"+dict.email+"\n行動電話:"+dict.mobile+"\n單位:"+dict.department+"\n拜會內容:"+description;
+        const title = `社創中心週三拜會: ${dict.name}\n時間: ${new Date(dict.start).toString()}`;
+        const content = `社創中心週三拜會: ${dict.name}\n時間: ${new Date(dict.start).toString()}\n預約者: ${dict.username}\nemail: ${dict.email}\n行動電話: ${dict.mobile}\n單位: ${dict.department}\n拜會內容: ${description}`;
 
-        if(dict.name!="Test"){
+        if(dict.name!='Test'){
           sendSmsPush(content);
 
           let receiver = config.mailgunTarget;
@@ -285,13 +285,13 @@ function sendSmsPush(content) {
   };
 
   axios({
-    "method": "POST",
-    "url": 'http://127.0.0.1:8081',
-    "headers": {"Content-Type":"application/json; charset=utf-8"},
-    "data": JSON.stringify(text)
+    'method': 'POST',
+    'url': 'http://127.0.0.1:8081',
+    'headers': {'Content-Type':'application/json; charset=utf-8'},
+    'data': JSON.stringify(text)
   })
   .then(function (response) {
-    console.log("sms push:"+response.data);
+    console.log('sms push:'+response.data);
   }).catch(function (error) {
     console.log(error);
   }); // axios end
