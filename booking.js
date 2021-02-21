@@ -185,7 +185,7 @@ function bookSchedule(dict, authToken, callback) {
         return;
       }
 
-    const data = {
+    const data = JSON.stringify({
       "startDateTime": new Date(dict.start).toISOString(),
       "endDateTime": new Date(dict.end).toISOString(),
       "description": pubDescription,
@@ -214,7 +214,7 @@ function bookSchedule(dict, authToken, callback) {
           "attributeValue": description
         }
       ]
-    };
+    });
   
 
   let header = {
