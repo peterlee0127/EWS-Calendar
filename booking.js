@@ -10,7 +10,7 @@ function checkToken(token, callback) {
     callback(false);
     return;
   }
-  const url = config.reserveUrl + '/Web/Services/index.php/Users/';
+  const url = config.reserveUrl + 'index.php/Users/';
   let header = {
     'X-Booked-SessionToken': token,
     'X-Booked-UserId': '505',
@@ -23,7 +23,6 @@ function checkToken(token, callback) {
     'headers': header,
   })
   .then(function (response) {
-    console.log(response);
     callback(true);
   }).catch( e=> {
     callback(false);
