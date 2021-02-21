@@ -1,4 +1,3 @@
-const request = require('request');
 const axios = require('axios').default;
 const config = require('./config.js');
 const reserveDay = config.reserveDay;
@@ -29,23 +28,36 @@ function getAuthToken(callback) {
       return;
     }
   }
-
-  request.post({url:config.reserveUrl+'Authentication/Authenticate', form:data, headers: header}, function(err, httpResponse, body){
-
-    if(httpResponse && httpResponse.statusCode!=200){callback(null);return;}
+  const url = config.reserveUrl+'Authentication/Authenticate';
+  axios({
+    "method": "POST",
+    "url": config.reserveUrl+'Reservations/',
+    "headers": header,
+    "data": data
+  })
+  .then(function (response) {
+    if(response.status!=200) {
+      callback(response.data);
+      return;
+    }
     try{
-        let parsedBody = JSON.parse(body);
-        let token = parsedBody.sessionToken;
-        let expiredTime = parsedBody.sessionExpires;
-        storeAuthInfo.token = token;
-        storeAuthInfo.expiredTime = expiredTime;
-        console.log(`create token: ${JSON.stringify(storeAuthInfo)}`);
-        callback(token);
+      const body = response.data;
+      let parsedBody = JSON.parse(body);
+      let token = parsedBody.sessionToken;
+      let expiredTime = parsedBody.sessionExpires;
+      storeAuthInfo.token = token;
+      storeAuthInfo.expiredTime = expiredTime;
+      console.log(`create token: ${JSON.stringify(storeAuthInfo)}`);
+      callback(token);
     }catch(e){
         console.log(e);
         callback(null);
     }
-  });
+  }).catch(function (error) {
+    console.log(error);
+    callback(error);
+  }); 
+
 }
 
 
@@ -63,7 +75,7 @@ function getReservations(callback, token, getRecentMonthReservation = false) {
       endDay = new Date(now.getFullYear(), now.getMonth(), now.getDate()+120).toISOString();
     }
 
-    let GetReservationsURL = config.reserveUrl+`Reservations/?resourceId=65&startDateTime=${previousDay}&endDateTime=${endDay}`;
+    let getReservationsURL = config.reserveUrl+`Reservations/?resourceId=65&startDateTime=${previousDay}&endDateTime=${endDay}`;
     let header = {
       "X-Booked-SessionToken": token,
       "X-Booked-UserId": "505",
@@ -71,8 +83,14 @@ function getReservations(callback, token, getRecentMonthReservation = false) {
       "cache-control": "no-cache"
     }
 
-    request.get({url:GetReservationsURL, headers: header}, function(err,httpResponse,body){
+    axios({
+      "method": "GET",
+      "url": getReservationsURL,
+      "headers": header,
+    })
+    .then(function (response) {
       try{
+        const body = reponse.data;
         let res = JSON.parse(body);
         for(let i=0;i<res.reservations.length;i++) {
             delete res.reservations[i].firstName;
@@ -83,7 +101,11 @@ function getReservations(callback, token, getRecentMonthReservation = false) {
       } catch(e){
 		    console.log(e+" "+body);
 	    }
-    });
+    }).catch(function (error) {
+      console.log(error);
+      callback(error);
+    }); // 
+
 }
 
 
@@ -134,13 +156,6 @@ function checkUserCanReserveOfNot(token, skip ,taxId, reserveDay, canReserve) {
       canReserve(true);
   }) 
 }
-
-// // dict.taxId, dict.start
-// checkUserCanReserveOfNot(false, '11111111', '2021-05-01T03:00:00+0000', (canReserve, info) =>{
-//   console.log(canReserve);
-//   console.log(info);
-//   // 無法預約，90天內已有預約紀錄
-// });
 
 
 function bookSchedule(dict, authToken, callback) {
@@ -270,16 +285,17 @@ function sendSmsPush(content) {
     }]
   };
 
-  const smsMessage = {
-    method: 'POST',
-    url: 'http://127.0.0.1:8081',
-    'body': JSON.stringify(text),
-    'headers': {"Content-Type":"application/json; charset=utf-8"}
-  }
-  request.post(smsMessage,function(error,response,body){
-    console.log("sms push:"+body);
-  });
-
+  axios({
+    "method": "POST",
+    "url": 'http://127.0.0.1:8081',
+    "headers": {"Content-Type":"application/json; charset=utf-8"},
+    "data": JSON.stringify(text)
+  })
+  .then(function (response) {
+    console.log("sms push:"+response.data);
+  }).catch(function (error) {
+    console.log(error);
+  }); // axios end
 }
 
 function sendEmail(content,target) {
