@@ -40,8 +40,7 @@ function getAuthToken(callback) {
       return;
     }
     try{
-      const body = response.data;
-      let parsedBody = JSON.parse(body);
+      let parsedBody = response.data;
       let token = parsedBody.sessionToken;
       let expiredTime = parsedBody.sessionExpires;
       storeAuthInfo.token = token;
@@ -89,8 +88,8 @@ function getReservations(callback, token, getRecentMonthReservation = false) {
     })
     .then(function (response) {
       try{
-        const body = reponse.data;
-        let res = JSON.parse(body);
+        const body = response.data;
+        let res = body;
         for(let i=0;i<res.reservations.length;i++) {
             delete res.reservations[i].firstName;
             delete res.reservations[i].lastName;
@@ -98,8 +97,9 @@ function getReservations(callback, token, getRecentMonthReservation = false) {
         }
         callback(res);
       } catch(e){
-		    console.log(e+" "+body);
-	    }
+           console.log(e);
+           console.log(response);
+       }
     }).catch(function (error) {
       console.log(error);
       callback(error);
@@ -234,7 +234,7 @@ function bookSchedule(dict, authToken, callback) {
     if(response.status!=201){callback(null);return;}
     try{
       const body = response.data;
-      let json = JSON.parse(body);
+      let json = body;
       if(json.message=="The reservation was created"){ // reservation successful.
 
       // build sms push message;
@@ -247,16 +247,16 @@ function bookSchedule(dict, authToken, callback) {
         const title = "社創中心週三拜會:"+dict.name+"\n時間:"+new Date(dict.start).toString();
         const content = "社創中心週三拜會:"+dict.name+"\n時間:"+new Date(dict.start).toString()+"\n預約者:"+dict.username+"\nemail:"+dict.email+"\n行動電話:"+dict.mobile+"\n單位:"+dict.department+"\n拜會內容:"+description;
 
-        sendSmsPush(content);
+        if(dict.name!="Test"){
+          sendSmsPush(content);
 
-        let receiver = config.mailgunTarget;
-        if (dict.email != undefined) {
-          receiver.push(dict.email);
+          let receiver = config.mailgunTarget;
+          if (dict.email != undefined) {
+            receiver.push(dict.email);
+          }
+          sendEmail(content, receiver);
         }
-        sendEmail(content, receiver);
-
       }
-      console.log(body);
       callback(body);
     }catch(e) {
       console.log(e);
