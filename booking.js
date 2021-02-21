@@ -1,4 +1,5 @@
 const request = require('request');
+const axios = require('axios').default;
 const config = require('./config.js');
 const reserveDay = config.reserveDay;
 const api_key = config.mailgunKey;
@@ -48,17 +49,7 @@ function getAuthToken(callback) {
 }
 
 
-let reservationResult = {};
 function getReservations(callback, token, getRecentMonthReservation = false) {
-  let nowTS = new Date().getTime()/1000;
-  let reservationTS = new Date(reservationResult.updateDate).getTime()/1000;
-  if(reservationResult!=undefined && reservationTS+5>=nowTS)  {
-    callback(reservationResult);
-    console.log("use reservation cache");
-    return;
-  }else {
-    console.log("will update reservation cache");
-  }
     if(!token){console.log('token not exist');return;}
 
     let now = new Date();
@@ -88,9 +79,6 @@ function getReservations(callback, token, getRecentMonthReservation = false) {
             delete res.reservations[i].lastName;
             delete res.reservations[i].links;
         }
-        reservationResult = res;
-        reservationResult.updateDate = new Date().toISOString();
-        console.log("update reservation cache");
         callback(res);
       } catch(e){
 		    console.log(e+" "+body);
@@ -182,7 +170,7 @@ function bookSchedule(dict, authToken, callback) {
         return;
       }
 
-    const data = JSON.stringify({
+    const data = {
       "startDateTime": new Date(dict.start).toISOString(),
       "endDateTime": new Date(dict.end).toISOString(),
       "description": pubDescription,
@@ -211,20 +199,27 @@ function bookSchedule(dict, authToken, callback) {
           "attributeValue": description
         }
       ]
-    });
+    };
   
 
   let header = {
     "x-booked-sessiontoken": authToken,
     "x-booked-userid": "505",
-    "content-type": "application/json",
+    "content-type": "application/x-www-form-urlencode;charset=utf-8;",
     "cache-control": "no-cache"
   }
 
-  request.post({url:config.reserveUrl+'Reservations/', form:data, headers: header}, function(err, httpResponse, body){
-    if(httpResponse.statusCode!=201){callback(null);return;}
-
+  axios({
+    "method": "POST",
+    "url": config.reserveUrl+'Reservations/',
+    "headers": header,
+    "data": data
+  })
+  .then(function (response) {
+    // handle success
+    if(response.status!=201){callback(null);return;}
     try{
+      const body = response.data;
       let json = JSON.parse(body);
       if(json.message=="The reservation was created"){ // reservation successful.
 
@@ -252,8 +247,13 @@ function bookSchedule(dict, authToken, callback) {
     }catch(e) {
       console.log(e);
       callback(e);
-    }
-  });
+    } // try catch end 
+
+  }).catch(function (error) {
+    console.log(error);
+    callback(error);
+  }); // axios success end
+   
 
   }); // checkUserCanReserveOfNot.
 }
