@@ -6,6 +6,10 @@ const DOMAIN = config.mailgunDomain;
 const mailgun = require('mailgun-js')({apiKey: api_key, domain: DOMAIN});
 
 function checkToken(token, callback) {
+  if(token==undefined) {
+    callback(false);
+    return;
+  }
   const url = config.reserveUrl + '/Web/Services/index.php/Users/';
   let header = {
     'X-Booked-SessionToken': token,
@@ -13,39 +17,25 @@ function checkToken(token, callback) {
     'content-type': 'application/json',
     'cache-control': 'no-cache'
   }
-
   axios({
     'method': 'GET',
     'url': url,
     'headers': header,
   })
   .then(function (response) {
-    console.log(response.data);
+    console.log(response);
     callback(true);
   }).catch( e=> {
-    console.log(e);
     callback(false);
   });
-
 }
 
-
-let storeAuthInfo = {'expiredTime':undefined ,'token': undefined};
+let storedAuthToken = undefined;
 function getAuthToken(callback) {
-  if(storeAuthInfo.expiredTime!=undefined) {
-    let tokenTS = new Date(storeAuthInfo.expiredTime);
-    let nowTS = new Date();
-    let expiredMinute = (tokenTS.getTime()-nowTS.getTime())/1000/60;
-    console.log('expiredMinute: '+expiredMinute);
-    if(expiredMinute>2) {
-      console.log(`reuse token: ${JSON.stringify(storeAuthInfo)}`);
-      callback(storeAuthInfo.token);
-      return;
-    }
-  }
-  checkToken(storeAuthInfo.token ,tokenIsValid => {
+  checkToken(storedAuthToken, tokenIsValid => {
     if(tokenIsValid==true) {
-      callback();
+      console.log(`reuse token: ${JSON.stringify(storedAuthToken)}`);
+      callback(storedAuthToken);
       return;
     }
 
@@ -71,15 +61,12 @@ function getAuthToken(callback) {
       }
       try{
         let parsedBody = response.data;
-        let token = parsedBody.sessionToken;
-        let expiredTime = parsedBody.sessionExpires;
-        storeAuthInfo.token = token;
-        storeAuthInfo.expiredTime = expiredTime;
-        console.log(`create token: ${JSON.stringify(storeAuthInfo)}`);
-        callback(token);
+        storedAuthToken = parsedBody.sessionToken;
+        console.log(`create token: ${JSON.stringify(storedAuthToken)}`);
+        callback(storedAuthToken);
       }catch(e){
-          console.log(e);
-          callback(null);
+        console.log(e);
+        callback(null);
       }
     }).catch(function (error) {
       console.log(error);
@@ -88,8 +75,6 @@ function getAuthToken(callback) {
   });
 
 }
-
-getAuthToken(token=>{});
 
 
 function getReservations(callback, token, getRecentMonthReservation = false) {
