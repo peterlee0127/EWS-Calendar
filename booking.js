@@ -266,12 +266,7 @@ function bookSchedule(dict, authToken, callback) {
 
         if(dict.name!='Test'){
           sendSmsPush(content);
-
-          let receiver = config.mailgunTarget;
-          if (dict.email != undefined) {
-            receiver.push(dict.email);
-          }
-          sendEmail(content, receiver);
+          sendEmail(content, dict.email);
         }
       }
       callback(body);
@@ -314,29 +309,29 @@ function sendSmsPush(content) {
   }); // axios end
 }
 
-function sendEmail(content,target) {
-  for(var i=0;i<target.length;i++){
-    var data = {
-      from: 'PDIS <hello@pdis.tw>',
-      to: target[i],
-      subject: '唐鳳拜會預約成功通知',
-      text: `
-      你好：
+function sendEmail(content, target) {
+  var data = {
+    from: 'PDIS <hello@pdis.tw>',
+    to: target,
+    cc: config.mailgunTarget,
+    subject: '唐鳳拜會預約成功通知',
+    text: `
+    你好：
 
-      你已預約唐鳳拜會，拜會地點為社會創新實驗中心（仁愛路三段99號），預約資訊如下，如需更改或取消，請直接回覆此信件。本辦保留調整預約的權利。
+    你已預約唐鳳拜會，拜會地點為社會創新實驗中心（仁愛路三段99號），預約資訊如下，如需更改或取消，請直接回覆此信件。本辦保留調整預約的權利。
 
-      ${content}
-      
-      *此信箱僅接受拜會相關問題來信，媒體邀約或其餘提問請致電 02-33566577
+    ${content}
 
-      `
-    };
+    *此信箱僅接受拜會相關問題來信，媒體邀約或其餘提問請致電 02-33566577
 
-    mailgun.messages().send(data, function (error, body) {
-      console.log(body);
-    });
-  }//loop
+    `
+  };
+
+  mailgun.messages().send(data, function (error, body) {
+    console.log(body);
+  });
 }
+
 
 
 
