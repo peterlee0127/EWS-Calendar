@@ -4,6 +4,7 @@ const reserveDay = config.reserveDay;
 const api_key = config.mailgunKey;
 const DOMAIN = config.mailgunDomain;
 const mailgun = require('mailgun-js')({apiKey: api_key, domain: DOMAIN});
+const ews = require('./EWS-Calendar.js');
 
 function checkToken(token, callback) {
   if(token==undefined) {
@@ -267,6 +268,7 @@ function bookSchedule(dict, authToken, callback) {
         if(dict.name!='Test'){
           sendSmsPush(content);
           sendEmail(content, dict.email);
+          syncToCalendar(dict.start, dict.end, title, content);
         }
       }
       callback(body);
@@ -332,6 +334,9 @@ function sendEmail(content, target) {
   });
 }
 
+function syncToCalendar(startTime, endTime, title, content) {
+  ews.writeToCalendar(startTime, endTime, title, content);
+}
 
 
 

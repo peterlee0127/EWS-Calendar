@@ -148,3 +148,70 @@ function loadCalendarItem(calItemIDs,callback) {
 Date.prototype.getDateStr = function() {
   return this.getFullYear()+' '+(this.getMonth()+1)+'/'+this.getDate();
 }
+
+
+function writeToCalendar(startTime, endTime, title, content) {
+  const ewsFunction = 'CreateItem';
+  let calendarItem = 	{
+  "Subject": title,
+  "Body": {
+    "attributes": {
+      "BodyType": "Text"
+    },
+    "$value": `${content}\n Synced by EWS Bot.`
+  },
+  "ReminderMinutesBeforeStart": "60",
+  "Start": startTime,
+  "End": endTime,
+  "Location": "社創中心",
+  "RequiredAttendees": {
+    "Attendee": [
+      // {
+      //   "Mailbox": {
+      //     "EmailAddress": "",
+      //   }
+      // }
+    ]
+  },
+  "TimeZoneContext": {
+    "TimeZoneDefinition": {
+      "attributes": {
+        "Id": "Taipei Standard Time"
+      }
+    }
+  }
+  };
+  let ewsArgs = {
+    "attributes" : {
+      "SendMeetingInvitations" : "SendToNone"
+      // SendOnlyToAll, SendToAllAndSaveCopy, SendToNone
+    },
+    'SavedItemFolderId' : {
+      'DistinguishedFolderId': {
+        'attributes': { 'Id': 'calendar' },
+        'Mailbox':{
+          'EmailAddress': config.targetCalendar
+        }
+      }
+    },
+    "Items" : {
+        "CalendarItem" : calendarItem
+    }
+  }
+  console.dir(ewsArgs, {depth: null});
+
+  ews.run(ewsFunction, ewsArgs)
+  .then(result => {
+    const json = JSON.stringify(result);
+    const jsonObj = JSON.parse(json);
+    console.dir(jsonObj,{depth:null});
+
+  })
+  .catch(err => {
+    console.log(err.stack);
+    callback(null);
+  });
+
+}
+
+exports.writeToCalendar = writeToCalendar;
