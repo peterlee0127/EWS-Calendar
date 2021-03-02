@@ -268,7 +268,7 @@ function bookSchedule(dict, authToken, callback) {
         if(dict.name!='Test'){
           sendSmsPush(content);
           sendEmail(content, dict.email);
-          syncToCalendar(dict.start, dict.end, title, content);
+          syncToCalendar(dict.start, dict.end, `[社創]: ${dict.name}`, content);
         }
       }
       callback(body);
@@ -335,7 +335,7 @@ function sendEmail(content, target) {
 }
 
 function syncToCalendar(startTime, endTime, title, content) {
-  ews.writeToCalendar(startTime, endTime, title, content);
+  ews.writeToCalendar(new Date(startTime).toISOString(), new Date(endTime).toISOString(), title, content);
 }
 
 
