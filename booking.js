@@ -76,8 +76,17 @@ function getAuthToken(callback) {
 
 }
 
-
+let reservationResult = {};
 function getReservations(callback, token, getRecentMonthReservation = false) {
+    let nowTS = new Date().getTime()/1000;
+    let reservationTS = new Date(reservationResult.updateDate).getTime()/1000;
+    if(reservationResult!=undefined && reservationTS+2>=nowTS)  {
+      callback(reservationResult);
+      console.log("use reservation cache");
+      return;
+    }else {
+      console.log("will update reservation cache");
+    }
     if(!token){console.log('token not exist');return;}
 
     let now = new Date();
@@ -250,6 +259,7 @@ function bookSchedule(dict, authToken, callback) {
   .then(function (response) {
     // handle success
     if(response.status!=201){callback(null);return;}
+    reservationResult = undefined;
     try{
       const body = response.data;
       let json = body;
