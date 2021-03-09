@@ -122,6 +122,8 @@ function getReservations(callback, token, getRecentMonthReservation = false) {
             delete res.reservations[i].lastName;
             delete res.reservations[i].links;
         }
+        reservationResult = res;
+        reservationResult.updateDate = new Date().toISOString();
         callback(res);
       } catch(e){
            console.log(e);
