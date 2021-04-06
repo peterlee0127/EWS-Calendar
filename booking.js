@@ -175,8 +175,9 @@ function checkUserCanReserveOfNot(token, skip ,taxId, reserveDay, canReserve) {
   getReservationsWithTaxId(token, reservationArray => {
       for(var i=0;i<reservationArray.length;i++) {
         let reserveItem = reservationArray[i];
+        let reserveTaxId = reserveItem.taxId;
         let day = Math.abs((new Date(reserveItem.date).getTime()-new Date(reserveDate).getTime())/86400/1000);
-        if(day<=90) {
+        if(day<=90 && reserveTaxId==taxId) {
           canReserve(false, `無法預約，90天內已有預約紀錄，上次預約於 date: ${reserveItem.date}, taxId: ${taxId}。\nSorry, You can't reserve in 90 days.`);
           return;
         }
@@ -261,7 +262,6 @@ function bookSchedule(dict, authToken, callback) {
   .then(function (response) {
     // handle success
     if(response.status!=201){callback(null);return;}
-    reservationResult = undefined;
     try{
       const body = response.data;
       let json = body;
@@ -324,10 +324,18 @@ function sendSmsPush(content) {
 }
 
 function sendEmail(content, target) {
+  let pdisMember = config.mailgunTarget.slice(); 
+  if(content.includes("逐字稿")) {
+    // 逐字稿
+    pdisMember.push(config.transcriptTarget);
+  }else {
+    // 錄影
+    pdisMember.push(config.videoRecordTarget);
+  }
   var data = {
     from: 'PDIS <hello@pdis.tw>',
     to: target,
-    cc: config.mailgunTarget,
+    cc: pdisMember,
     subject: '唐鳳拜會預約成功通知',
     text: `
     你好：
@@ -349,8 +357,6 @@ function sendEmail(content, target) {
 function syncToCalendar(startTime, endTime, title, content) {
   ews.writeToCalendar(new Date(startTime).toISOString(), new Date(endTime).toISOString(), title, content);
 }
-
-
 
 exports.getReservations = getReservations;
 exports.getAuthToken = getAuthToken;
