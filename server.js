@@ -5,6 +5,7 @@ const fs = require('fs');
 const booking = require('./booking.js');
 const config = require('./config.js');
 const reserveDay = config.reserveDay;
+const cors = require('@koa/cors');
 
 app.use(async (ctx, next) => {
   const start = Date.now();
@@ -45,6 +46,8 @@ async function getReserve(body) {
   });
  });
 }
+
+app.use(cors());
 
 app.use(async (ctx, next)  => {
   if(ctx.method=='GET'){
