@@ -9,6 +9,7 @@
   "author": "Peterlee",
   "license": "MIT",
   "dependencies": {
+    "@koa/cors": "^3.1.0",
     "axios": "^0.19.2",
     "crypto": "",
     "google-auth-library": "0.*",
