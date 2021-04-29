@@ -333,8 +333,9 @@ function sendEmail(content, target) {
     pdisMember.push(config.videoRecordTarget);
   }
   var data = {
-    from: 'PDIS <hello@pdis.tw>',
+    from: `PDIS <${config.mailgunSender}>`,
     to: target,
+    'h:Reply-To': config.mailgunReplyTo,
     cc: pdisMember,
     subject: '唐鳳拜會預約成功通知',
     text: `
@@ -350,9 +351,13 @@ function sendEmail(content, target) {
   };
 
   mailgun.messages().send(data, function (error, body) {
+    if(error) {
+      console.log(error);
+    }
     console.log(body);
   });
 }
+
 
 function syncToCalendar(startTime, endTime, title, content) {
   ews.writeToCalendar(new Date(startTime).toISOString(), new Date(endTime).toISOString(), title, content);
