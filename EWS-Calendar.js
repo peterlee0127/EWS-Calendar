@@ -1,25 +1,26 @@
 const config = require('./config.js');
 const EWS = require('node-ews');
-const NTLMAuth = require('httpntlm').ntlm;
+//const NTLMAuth = require('httpntlm').ntlm;
 const passwordPlainText = config.password//'mypassword';
 
 // store the ntHashedPassword and lmHashedPassword to reuse later for reconnecting
-const ntHashedPassword = NTLMAuth.create_NT_hashed_password(passwordPlainText);
-const lmHashedPassword = NTLMAuth.create_LM_hashed_password(passwordPlainText);
+//const ntHashedPassword = NTLMAuth.create_NT_hashed_password(passwordPlainText);
+//const lmHashedPassword = NTLMAuth.create_LM_hashed_password(passwordPlainText);
 
 // exchange server connection info
 const ewsConfig = {
   username: config.useraccount,
-  //password: config.password,
-  nt_password: ntHashedPassword,
-  lm_password: lmHashedPassword,
+  password: config.password,
+  //nt_password: ntHashedPassword,
+  //lm_password: lmHashedPassword,
   host: config.host
 };
 const ews = new EWS(ewsConfig);
 
 var resultCal = [];
 
-function getCalendarItem(Id,callback)  {
+function getCalendarItem(Id,callback, retry = 5)  {
+    console.log(`try: ${Id}, ${retry}`);
     const ewsFunction = 'GetItem';
     const ewsArgs = {
       'ItemShape': {
@@ -39,14 +40,23 @@ function getCalendarItem(Id,callback)  {
     ews.run(ewsFunction, ewsArgs)
       .then(result => {
         const json = JSON.stringify(result);
-//        var jsonObj = JSON.parse(json).ResponseMessages.GetItemResponseMessage.Items.CalendarItem;
-  //      console.dir(jsonObj.RequiredAttendees.Attendee,{depth:null});
-    //    console.dir(jsonObj.OptionalAttendees.Attendee,{depth:null});
-        callback(json);
+	if(retry!=5){
+    		console.log(`fix: ${Id}, ${retry}`);
+        }
+	callback(json);
       })
       .catch(err => {
-        console.log(err.stack);
-        callback(null);
+	 console.log(err);
+	 console.log(`error: ${Id}, ${retry}`);
+        if(retry>0){
+	  retry = retry - 1;
+          getCalendarItem(Id, (item=> {
+	   callback(item);
+	  }), retry);
+        }else{
+          console.log(err);
+          callback(null);
+        }
       });
 }
 exports.getCalendarItem = getCalendarItem;
@@ -142,7 +152,7 @@ function loadCalendarItem(calItemIDs,callback) {
   });
   calItemIDs.shift();
   console.log("last item: "+calItemIDs.length+"/"+totoalCount);
-  setTimeout(loadCalendarItem,900,calItemIDs,callback);
+  setTimeout(loadCalendarItem, 1200,calItemIDs,callback);
 }
 
 Date.prototype.getDateStr = function() {

@@ -285,12 +285,10 @@ function bookSchedule(dict, authToken, callback) {
       }
       callback(body);
     }catch(e) {
-      console.log(e);
       callback(e);
     } // try catch end 
 
   }).catch(function (error) {
-    console.log(error);
     callback(error);
   }); // axios success end
    

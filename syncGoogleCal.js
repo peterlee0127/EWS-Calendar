@@ -126,7 +126,7 @@ function deleteEvents(auth) {
       for (var i = 0; i < events.length; i++) {
         var event = events[i];
         var tryCount = 2;
-        setTimeout(deleteEvent, 800*i, auth, event.id, tryCount);
+        setTimeout(deleteEvent, 1800*i, auth, event.id, tryCount);
       }
     }
   });
@@ -142,7 +142,7 @@ function deleteEvent(auth,eventID,tryCount) {
     if(err){console.log(err)
         if(tryCount>0){
             tryCount--;
-            setTimeout(deleteEvent,1500,auth,eventID,tryCount);
+            setTimeout(deleteEvent,2100,auth,eventID,tryCount);
         }
     }else {
         eventCount--;
@@ -212,10 +212,12 @@ function addEvent(auth, event, tryCount) {
         if(tryCount>0) {
             tryCount--;
             console.log('There was an error contacting the Calendar service: ' + err);
-            setTimeout(addEvent, 1600, auth, event, tryCount);
+            setTimeout(addEvent, 3800, auth, event, tryCount);
             return;
         }
     }        
-    console.log('Event created: %s', event.data.htmlLink);
+    if(event.data != undefined){
+      console.log('Event created: %s', event.data.htmlLink);
+    }
     });
 }
