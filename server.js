@@ -17,13 +17,14 @@ app.use(bodyParser());
 
 async function readCalendar(path) {
   return new Promise((resolve, reject) => {
-      let content =  fs.readFile(path , "utf8",function(error,json){
-          if(error){
-            console.log(error);resolve(null);
-          }else {
-            resolve(json);
-          }
-      });
+    let content =  fs.readFile(path , "utf8",function(error,json){
+      if(error){
+        console.log(error);
+        resolve(null);
+      }else {
+        resolve(json);
+      }
+    });
  })
 }
 
@@ -55,11 +56,11 @@ app.use(async (ctx, next)  => {
       let result = await readCalendar('./data/pub_calendar.json');
       ctx.body = result;
     }
-  }
-  if(ctx.method=='GET'){
-    if(ctx.url=='/getReserve'){
+    else if(ctx.url=='/getReserve'){
       let result = await getReserve(ctx.request.body);
       ctx.body = result;
+    }else {
+      ctx.redirect('https://pdis.tw');
     }
   }
   if(ctx.method=='POST'){
