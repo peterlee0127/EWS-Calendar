@@ -194,8 +194,9 @@ function processPublicCalendar(json,callback) {
         holiday: false
       };
       //console.log(item['Start']+" "+item.Subject);
+      let itemSubject = item.Subject;
 
-      if (item.Subject == '[au] 空總 Office Hour-booking-上午') {
+      if (itemSubject == '[au] 空總 Office Hour-booking-上午') {
         // officeHourArray.push(dict);
         let time = new Date(item['Start']);
         dict.start = time.setHours("10");
@@ -204,7 +205,7 @@ function processPublicCalendar(json,callback) {
         dict.afternoon = false;
         bookingHourArray.push(dict);
       }
-      else if (item.Subject == '[au] 空總 Office Hour-booking') {
+      else if (itemSubject == '[au] 空總 Office Hour-booking') {
         //support shrink booking time slot
         //設定下午時段使用同樣區間 支援booking事件起訖縮小時自動預約
         let time = new Date(item['Start']);
@@ -213,7 +214,7 @@ function processPublicCalendar(json,callback) {
         dict.morning = false;
         dict.afternoon = true;
         bookingHourArray.push(dict);
-      } else if (item.Subject.toUpperCase().indexOf("AU不出席") == -1) {
+      } else if (/[不無毋][須需]\s*[Aa][Uu]/.exec(itemSubject) == null) {
         otherEvent.push(dict);
       }  // else other event
     }  // day 3
@@ -224,6 +225,8 @@ function processPublicCalendar(json,callback) {
       console.log(error);
       console.log(holidays);
     } else {
+	let holidayArray = [];
+	/*
       let holidayArray = JSON.parse(holidays);
       holidayArray = holidayArray.filter(item => item.date.split('/')[0] == now.getFullYear() && item.isHoliday == '是');
       // only parse this year's holiday.
@@ -238,7 +241,7 @@ function processPublicCalendar(json,callback) {
           }
         }
       }
-
+	*/
 
       let slotArray = [];
       for (var i=0;i<bookingHourArray.length;i++) {

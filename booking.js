@@ -358,7 +358,9 @@ function sendEmail(content, target) {
 
 
 function syncToCalendar(startTime, endTime, title, content) {
-  ews.writeToCalendar(new Date(startTime).toISOString(), new Date(endTime).toISOString(), title, content);
+  let reserveSystemTime = new Date().toString("zh_TW");
+  let nContent = `${content}\n使用者於：${reserveSystemTime}預約`;
+  ews.writeToCalendar(new Date(startTime).toISOString(), new Date(endTime).toISOString(), title, nContent);
 }
 
 exports.getReservations = getReservations;
